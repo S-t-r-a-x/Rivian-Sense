@@ -30,7 +30,7 @@ class DriverContextApi(context: Context) {
     companion object {
         private const val TAG = "DriverContextApi"
         // Za Android Emulator koristi (TESTIRANJE):
-        private const val SERVER_URL = "http://192.168.0.73:5000"
+        private const val SERVER_URL = "http://192.168.0.242:5000"
         
         // Za pravi device koristi (nakon što emulator radi):
         // private const val SERVER_URL = "http://192.168.0.73:5000"
@@ -87,11 +87,11 @@ class DriverContextApi(context: Context) {
                 reconnectionDelayMax = 5000  // Maksimalno 5 sekundi između pokušaja
                 
                 // Forsiraj SAMO polling transport (zaobiđi WebSocket problem)
-                transports = arrayOf("polling")
+                transports = arrayOf("polling", "websocket")
                 
                 // NE upgrade-uj na WebSocket (ostani na polling)
                 forceNew = false  // Reuse konekcije
-                upgrade = false  // Ne pokušavaj upgrade na WebSocket
+                upgrade = true  // Ne pokušavaj upgrade na WebSocket
             }
             
             // Inicijalizuj Socket.IO konekciju sa opcijama
