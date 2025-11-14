@@ -95,8 +95,32 @@ class MainViewModel : ViewModel() {
     }
     
     // Logging Actions
-    fun createPostDriveReminder(text: String) {
-        loggingAction?.createPostDriveReminder(text)
+    fun createPostDriveReminder(text: String): Boolean {
+        return loggingAction?.createPostDriveReminder(text) ?: false
+    }
+    
+    fun createMissedCallReminder(callerName: String, phoneNumber: String): Boolean {
+        return loggingAction?.createMissedCallReminder(callerName, phoneNumber) ?: false
+    }
+    
+    fun completeReminder(id: String) {
+        loggingAction?.completeReminder(id)
+    }
+    
+    fun getAllReminders(): List<LoggingAction.Reminder> {
+        return loggingAction?.getAllReminders() ?: emptyList()
+    }
+    
+    fun getActiveReminders(): List<LoggingAction.Reminder> {
+        return loggingAction?.getActiveReminders() ?: emptyList()
+    }
+    
+    fun printAllReminders() {
+        loggingAction?.printAllReminders()
+    }
+    
+    fun clearAllReminders() {
+        loggingAction?.clearAllReminders()
     }
     
     fun logDriveSummary(

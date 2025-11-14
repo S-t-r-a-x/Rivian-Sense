@@ -2,6 +2,7 @@ package com.example.riviansenseapp.navigation
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,6 +16,7 @@ fun RivianNavGraph(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var features by remember { mutableStateOf(getDefaultFeatures()) }
     
     NavHost(
@@ -97,7 +99,13 @@ fun RivianNavGraph(
                 onStartBreathing = { navController.navigate(Screen.Breathing.route) },
                 onStartStretch = { navController.navigate(Screen.MicroStretch.route) },
                 onCreateReminder = { 
-                    viewModel.createPostDriveReminder("Test reminder: Call John when I arrive")
+                    viewModel.createMissedCallReminder("Jovan", "+381641234567")
+                },
+                onPrintReminders = {
+                    viewModel.printAllReminders()
+                },
+                onClearAllReminders = {
+                    viewModel.clearAllReminders()
                 },
                 onPlayChime = { viewModel.playSoftChimeForAggressivePattern() },
                 onShowStreak = { 
