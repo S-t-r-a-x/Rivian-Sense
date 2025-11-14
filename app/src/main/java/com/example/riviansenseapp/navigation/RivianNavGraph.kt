@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.riviansenseapp.actions.NavigationAction
+import com.example.riviansenseapp.context.ActionType
 import com.example.riviansenseapp.ui.screens.*
 import com.example.riviansenseapp.viewmodel.MainViewModel
 
@@ -18,6 +19,10 @@ fun RivianNavGraph(
 ) {
     val context = LocalContext.current
     var features by remember { mutableStateOf(getDefaultFeatures()) }
+    
+    // Observe context and smart actions
+    val currentContext by viewModel.currentContext.collectAsState()
+    val smartActions by viewModel.smartActions.collectAsState()
     
     NavHost(
         navController = navController,
@@ -36,6 +41,25 @@ fun RivianNavGraph(
         
         composable(Screen.Home.route) {
             HomeScreen(
+                currentMood = when(currentContext.mood) {
+                    com.example.riviansenseapp.context.Mood.NERVOUS -> "Nervous"
+                    com.example.riviansenseapp.context.Mood.TIRED -> "Tired"
+                    com.example.riviansenseapp.context.Mood.NEUTRAL -> "Neutral"
+                },
+                currentLocation = when(currentContext.location) {
+                    com.example.riviansenseapp.context.Location.FOREST -> "Forest"
+                    com.example.riviansenseapp.context.Location.CITY -> "City"
+                    com.example.riviansenseapp.context.Location.HIGHWAY -> "Highway"
+                    com.example.riviansenseapp.context.Location.GARAGE -> "Garage"
+                },
+                smartActions = smartActions,
+                onSmartActionClick = { actionType ->
+                    when(actionType) {
+                        ActionType.BREATHING -> navController.navigate(Screen.Breathing.route)
+                        ActionType.STRETCH -> navController.navigate(Screen.MicroStretch.route)
+                        else -> viewModel.executeSmartAction(actionType)
+                    }
+                },
                 onPlaySpotify = { viewModel.playSpotify() },
                 onStartBreathing = { navController.navigate(Screen.Breathing.route) },
                 onOpenSettings = { navController.navigate(Screen.Settings.route) },
@@ -84,8 +108,6 @@ fun RivianNavGraph(
                 onPlayPodcast = { viewModel.playPodcastOrAudiobook() },
                 onFadeOutMusic = { viewModel.fadeOutMusic() },
                 onSetVolume = { volume -> viewModel.setSpotifyVolume(volume) },
-                onPlayNatureSound = { type -> viewModel.playNatureSoundscape(type) },
-                onStopNatureSound = { viewModel.stopNatureSoundscape() },
                 onEnableDND = { mode -> viewModel.enableDrivingDND(mode) },
                 onDisableDND = { viewModel.disableDrivingDND() },
                 onAutoReply = { viewModel.autoReplyToMessages() },
@@ -111,6 +133,20 @@ fun RivianNavGraph(
                 onShowStreak = { 
                     val streak = viewModel.showStreakCard()
                     // TODO: Show streak in UI or Toast
+                },
+                onSetContext = { mood, location ->
+                    if (mood.isNotEmpty()) {
+                        viewModel.setMockContext(
+                            com.example.riviansenseapp.context.Mood.valueOf(mood),
+                            currentContext.location
+                        )
+                    }
+                    if (location.isNotEmpty()) {
+                        viewModel.setMockContext(
+                            currentContext.mood,
+                            com.example.riviansenseapp.context.Location.valueOf(location)
+                        )
+                    }
                 }
             )
         }
