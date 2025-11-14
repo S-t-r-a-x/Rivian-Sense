@@ -13,20 +13,21 @@ import com.example.riviansenseapp.ui.theme.RivianSenseAppTheme
 import com.example.riviansenseapp.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
-    
+
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Inicijalizuj akcije sa kontekstom
+        // ViewModel automatski pokreće WebSocket listener u initActions()
         viewModel.initActions(this)
-        
+
         enableEdgeToEdge()
         setContent {
             RivianSenseAppTheme {
                 val navController = rememberNavController()
-                
+
                 RivianNavGraph(
                     navController = navController,
                     viewModel = viewModel,
