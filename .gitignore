@@ -1,0 +1,53 @@
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log/OS Files
+*.log
+
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.aab
+*.apk
+output-metadata.json
+
+# IntelliJ
+*.iml
+.idea/*
+# 2. But FORCE KEEP these shared project settings (Critical for teams):
+!.idea/misc.xml
+!.idea/gradle.xml
+!.idea/compiler.xml
+!.idea/vcs.xml
+!.idea/.gitignore
+# 3. Explicitly ignore user-specific layout/history files
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/deploymentTargetDropDown.xml
+
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (e.g. APIs or Firebase)
+# google-services.json
+
+# Android Profiling
+*.hprof
+
+# --- OS Junk Files ---
+# Mac
+.DS_Store
+# Windows
+Thumbs.db
