@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.riviansenseapp.ui.screens.cards.ActionCard
 import com.example.riviansenseapp.ui.theme.RivianSenseAppTheme
 import java.util.*
 
@@ -256,7 +257,7 @@ fun HomeScreen(
                 ),
                 borderColor = Color(0xFF14532D) // emerald-900
             )
-            
+
             ActionCard(
                 icon = Icons.Default.FavoriteBorder,
                 iconTint = Color(0xFF60A5FA), // blue-400
@@ -270,7 +271,7 @@ fun HomeScreen(
                 ),
                 borderColor = Color(0xFF1E3A8A) // blue-900
             )
-            
+
             ActionCard(
                 icon = Icons.Default.Star,
                 iconTint = Color(0xFF22D3EE), // cyan-400
