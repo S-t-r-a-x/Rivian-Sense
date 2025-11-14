@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow // --- NEW IMPORT ---
 import kotlinx.coroutines.flow.asStateFlow // --- NEW IMPORT ---
 import com.example.riviansenseapp.api.DriverContextApi
 import com.example.riviansenseapp.context.*
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -21,7 +20,6 @@ class MainViewModel : ViewModel() {
 
     // --- Existing Action Properties ---
     private var spotifyAction: SpotifyAction? = null
-    private var audioAction: AudioAction? = null
     private var phoneAction: PhoneAction? = null
     private var navigationAction: NavigationAction? = null
     private var wellbeingAction: WellbeingAction? = null
@@ -47,12 +45,45 @@ class MainViewModel : ViewModel() {
 
         contextApi = DriverContextApi(context)
         contextualActionManager = ContextualActionManager(context)
-
+        
         // Učitaj početni kontekst
         refreshContext()
+        
+        // Pokreni WebSocket listener za real-time updates
+        startWebSocketListener()
     }
-
+    
     /**
+     * Pokreće WebSocket listener za real-time kontekst updates
+     */
+    private fun startWebSocketListener() {
+        contextApi?.startContextMonitoring { newContext ->
+            viewModelScope.launch {
+                _currentContext.value = newContext
+                
+                android.util.Log.d("MainViewModel", "🔄 Context updated: ${newContext.mood} @ ${newContext.location}")
+                
+                // Auto-manage DND based on mood
+                contextualActionManager?.let { manager ->
+                    if (manager.shouldDNDBeActive(newContext)) {
+                        enableDrivingDND(PhoneAction.DNDMode.SOFT)
+                    } else {
+                        disableDrivingDND()
+                    }
+                }
+                
+                // Update smart actions
+                updateSmartActions()
+            }
+        }
+    }
+    
+    /**
+     * Zatvara WebSocket konekciju
+     */
+    fun stopWebSocketListener() {
+        contextApi?.stopContextMonitoring()
+    }    /**
      * Osvežava kontekst sa API-ja i ažurira smart actions
      */
     fun refreshContext() {
@@ -277,10 +308,6 @@ class MainViewModel : ViewModel() {
         return loggingAction?.getReminders() ?: emptyList()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        audioAction?.stopNatureSoundscape()
-
     /**
      * Izvršava smart action na osnovu ActionType-a
      */
@@ -302,5 +329,10 @@ class MainViewModel : ViewModel() {
             )
             ActionType.CREATE_REMINDER -> {} // Will open reminder dialog
         }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        stopWebSocketListener()
     }
 }
