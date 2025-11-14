@@ -128,44 +128,6 @@ class MainViewModel : ViewModel() {
      * This function is called by MainActivity when a new state
      * is received from the server.
      */
-    fun handleDriverState(state: String) {
-        Log.i("MainViewModel", "Handling state: $state")
-
-        // 1. Update the debug state for the UI
-        _driverState.value = state
-
-        // 2. Trigger actions based on the state
-        // This 'when' block calls your existing functions.
-        when (state) {
-            "nervous" -> {
-                // Example action: Play calming sounds and suggest breathing
-//                Log.d("MainViewModel", "Nervous state detected. Playing calm sounds.")
-//                playNatureSoundscape(AudioAction.NatureSoundType.CALM)
-//                startBreathingExercise(60)
-            }
-            "tired" -> {
-                // Example action: Suggest a break and play an engaging podcast
-                Log.d("MainViewModel", "Tired state detected. Suggesting break.")
-//                suggestBreak(NavigationAction.StopType.REST_AREA)
-//                playPodcastOrAudiobook() // To keep driver alert
-            }
-            "aggressive" -> {
-                // Example action: Play a soft chime
-                Log.d("MainViewModel", "Aggressive state detected. Playing chime.")
-//                playSoftChimeForAggressivePattern()
-                // Maybe also fade out intense music
-//                fadeOutMusic(2000)
-            }
-            "normal" -> {
-                // Example action: Stop any active wellbeing interventions
-                Log.d("MainViewModel", "State is normal. Stopping nature sounds.")
-//                stopNatureSoundscape()
-            }
-            else -> {
-                Log.w("MainViewModel", "Received unknown state: $state")
-            }
-        }
-    }
 
     // --- All your existing functions below ---
 
