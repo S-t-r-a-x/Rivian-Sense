@@ -26,7 +26,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onPlaySpotify: () -> Unit = {},
     onStartBreathing: () -> Unit = {},
-    onOpenSettings: () -> Unit = {}
+    onOpenSettings: () -> Unit = {},
+    onOpenTestActions: () -> Unit = {}
 ) {
     val timeOfDay = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
         in 0..11 -> "Morning"
@@ -63,17 +64,33 @@ fun HomeScreen(
                 )
             }
             
-            IconButton(
-                onClick = onOpenSettings,
-                colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = Color(0xFF94A3B8)
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    modifier = Modifier.size(24.dp)
-                )
+            Row {
+                // Test button (temporary)
+                IconButton(
+                    onClick = onOpenTestActions,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = Color(0xFFEF4444) // red for testing
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Test Actions",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                
+                IconButton(
+                    onClick = onOpenSettings,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = Color(0xFF94A3B8)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
         

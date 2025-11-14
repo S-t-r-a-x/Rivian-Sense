@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.riviansenseapp.actions.NavigationAction
 import com.example.riviansenseapp.ui.screens.*
 import com.example.riviansenseapp.viewmodel.MainViewModel
 
@@ -35,12 +36,21 @@ fun RivianNavGraph(
             HomeScreen(
                 onPlaySpotify = { viewModel.playSpotify() },
                 onStartBreathing = { navController.navigate(Screen.Breathing.route) },
-                onOpenSettings = { navController.navigate(Screen.Settings.route) }
+                onOpenSettings = { navController.navigate(Screen.Settings.route) },
+                onOpenTestActions = { navController.navigate(Screen.TestActions.route) }
             )
         }
         
         composable(Screen.Breathing.route) {
             BreathingScreen(
+                onComplete = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Screen.MicroStretch.route) {
+            MicroStretchScreen(
                 onComplete = {
                     navController.popBackStack()
                 }
@@ -61,6 +71,38 @@ fun RivianNavGraph(
                 },
                 onBack = {
                     navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Screen.TestActions.route) {
+            TestActionsScreen(
+                onBack = { navController.popBackStack() },
+                onPlaySpotify = { viewModel.playSpotify() },
+                onPlayPodcast = { viewModel.playPodcastOrAudiobook() },
+                onFadeOutMusic = { viewModel.fadeOutMusic() },
+                onSetVolume = { volume -> viewModel.setSpotifyVolume(volume) },
+                onPlayNatureSound = { type -> viewModel.playNatureSoundscape(type) },
+                onStopNatureSound = { viewModel.stopNatureSoundscape() },
+                onEnableDND = { mode -> viewModel.enableDrivingDND(mode) },
+                onDisableDND = { viewModel.disableDrivingDND() },
+                onAutoReply = { viewModel.autoReplyToMessages() },
+                onNavigateHome = { 
+                    viewModel.openNavigationTo("Home", NavigationAction.DestinationType.HOME)
+                },
+                onNavigateWork = { 
+                    viewModel.openNavigationTo("Work", NavigationAction.DestinationType.WORK)
+                },
+                onSuggestBreak = { type -> viewModel.suggestBreak(type) },
+                onStartBreathing = { navController.navigate(Screen.Breathing.route) },
+                onStartStretch = { navController.navigate(Screen.MicroStretch.route) },
+                onCreateReminder = { 
+                    viewModel.createPostDriveReminder("Test reminder: Call John when I arrive")
+                },
+                onPlayChime = { viewModel.playSoftChimeForAggressivePattern() },
+                onShowStreak = { 
+                    val streak = viewModel.showStreakCard()
+                    // TODO: Show streak in UI or Toast
                 }
             )
         }
