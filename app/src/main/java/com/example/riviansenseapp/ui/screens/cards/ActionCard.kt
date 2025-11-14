@@ -1,5 +1,6 @@
-package com.example.riviansenseapp.ui.screens
+package com.example.riviansenseapp.ui.screens.cards
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -87,7 +88,7 @@ fun ActionCard(
                     containerColor = Color.White.copy(alpha = 0.1f)
                 ),
                 shape = RoundedCornerShape(8.dp),
-                border = androidx.compose.foundation.BorderStroke(
+                border = BorderStroke(
                     1.dp,
                     Color.White.copy(alpha = 0.2f)
                 )

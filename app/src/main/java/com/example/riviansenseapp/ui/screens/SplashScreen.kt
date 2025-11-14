@@ -72,9 +72,9 @@ fun SplashScreen(
                     tint = Color(0xFF22D3EE) // cyan-400
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             Text(
                 text = "RIVIAN",
                 fontSize = 48.sp,
@@ -82,9 +82,9 @@ fun SplashScreen(
                 color = Color.White,
                 letterSpacing = 8.sp
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = "SENSE",
                 fontSize = 16.sp,
