@@ -10,6 +10,10 @@ import android.widget.Toast
 class SpotifyAction(private val context: Context) {
     
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    
+    // Playlist IDs za različite kontekste
+    private val CALM_PLAYLIST_ID = "37i9dQZF1DWZd79rJ6a7lp" // Peaceful Piano
+    private val ENERGETIC_PLAYLIST_ID = "37i9dQZF1DX3rxVfibe1L0" // Mood Booster
     private val DEFAULT_PLAYLIST_ID = "37i9dQZF1DXcBWIGoYBM5M" // Today's Top Hits
     
     fun playPlaylist(playlistId: String = DEFAULT_PLAYLIST_ID) {
@@ -105,5 +109,19 @@ class SpotifyAction(private val context: Context) {
         } catch (e: Exception) {
             Toast.makeText(context, "Instalirajte Spotify aplikaciju", Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    /**
+     * Pusti opuštajuću muziku (za nervozne vozače)
+     */
+    fun playCalmMusic() {
+        playPlaylist(CALM_PLAYLIST_ID)
+    }
+    
+    /**
+     * Pusti energičnu muziku (za umorne vozače)
+     */
+    fun playEnergeticMusic() {
+        playPlaylist(ENERGETIC_PLAYLIST_ID)
     }
 }
