@@ -25,6 +25,10 @@ import java.util.*
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    currentMood: String = "Neutral",
+    currentLocation: String = "City",
+    smartActions: List<com.example.riviansenseapp.context.SmartAction> = emptyList(),
+    onSmartActionClick: (com.example.riviansenseapp.context.ActionType) -> Unit = {},
     onPlaySpotify: () -> Unit = {},
     onStartBreathing: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
@@ -183,13 +187,13 @@ fun HomeScreen(
                     
                     Column {
                         Text(
-                            text = "Current Scenery",
+                            text = "Current Location",
                             fontSize = 12.sp,
                             color = Color(0xFF94A3B8),
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                         Text(
-                            text = "Dense Forest",
+                            text = currentLocation,
                             fontSize = 14.sp,
                             color = Color.White
                         )
@@ -227,7 +231,7 @@ fun HomeScreen(
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
                         Text(
-                            text = "Calm & Relaxed",
+                            text = currentMood,
                             fontSize = 14.sp,
                             color = Color.White
                         )
@@ -238,7 +242,7 @@ fun HomeScreen(
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Suggested Actions
+        // Smart Actions Section
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -258,42 +262,73 @@ fun HomeScreen(
             )
         }
         
+        // Smart action cards - dynamic based on context
+        if (smartActions.isEmpty()) {
+            // Fallback when no smart actions
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ActionCard(
+                    icon = Icons.Default.PlayArrow,
+                    iconTint = Color(0xFF34D399),
+                    title = "Play Music",
+                    description = "Start your playlist",
+                    actionText = "Play on Spotify",
+                    onAction = onPlaySpotify,
+                    gradientColors = listOf(
+                        Color(0xFF064E3B),
+                        Color(0xFF0F172A)
+                    ),
+                    borderColor = Color(0xFF14532D)
+                )
+
+                ActionCard(
+                    icon = Icons.Default.FavoriteBorder,
+                    iconTint = Color(0xFF60A5FA),
+                    title = "Breathing Exercise",
+                    description = "60-second box breathing",
+                    actionText = "Start Exercise",
+                    onAction = onStartBreathing,
+                    gradientColors = listOf(
+                        Color(0xFF172554),
+                        Color(0xFF0F172A)
+                    ),
+                    borderColor = Color(0xFF1E3A8A)
+                )
+            }
+        } else {
+            // Smart actions from context
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                smartActions.forEach { smartAction ->
+                    com.example.riviansenseapp.ui.screens.cards.SmartActionCard(
+                        smartAction = smartAction,
+                        onClick = { onSmartActionClick(smartAction.action) }
+                    )
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Old action card for reference (can be removed later)
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(top = 16.dp)
         ) {
-            ActionCard(
-                icon = Icons.Default.PlayArrow,
-                iconTint = Color(0xFF34D399), // emerald-400
-                title = "Play Chill Playlist",
-                description = "We found a perfect forest ambience mix for you",
-                actionText = "Play on Spotify",
-                onAction = onPlaySpotify,
-                gradientColors = listOf(
-                    Color(0xFF064E3B), // emerald-950
-                    Color(0xFF0F172A)  // slate-900
-                ),
-                borderColor = Color(0xFF14532D) // emerald-900
+            Text(
+                text = "Other Actions",
+                fontSize = 14.sp,
+                color = Color(0xFF64748B),
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-
-            ActionCard(
-                icon = Icons.Default.FavoriteBorder,
-                iconTint = Color(0xFF60A5FA), // blue-400
-                title = "Breathing Exercise",
-                description = "60-second box breathing to center yourself",
-                actionText = "Start Exercise",
-                onAction = onStartBreathing,
-                gradientColors = listOf(
-                    Color(0xFF172554), // blue-950
-                    Color(0xFF0F172A)  // slate-900
-                ),
-                borderColor = Color(0xFF1E3A8A) // blue-900
-            )
-
+            
             ActionCard(
                 icon = Icons.Default.Star,
-                iconTint = Color(0xFF22D3EE), // cyan-400
-                title = "Adjust Cabin Lighting",
-                description = "Set to soft blue for a calming atmosphere",
+                iconTint = Color(0xFF22D3EE),
+                title = "Manual Actions",
+                description = "Access all available actions",
                 actionText = "Apply Lighting",
                 onAction = { /* TODO */ },
                 gradientColors = listOf(

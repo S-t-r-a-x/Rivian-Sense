@@ -3,9 +3,15 @@ package com.example.riviansenseapp.viewmodel
 import android.content.Context
 import android.util.Log // --- NEW IMPORT ---
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.riviansenseapp.actions.*
 import kotlinx.coroutines.flow.MutableStateFlow // --- NEW IMPORT ---
 import kotlinx.coroutines.flow.asStateFlow // --- NEW IMPORT ---
+import com.example.riviansenseapp.api.DriverContextApi
+import com.example.riviansenseapp.context.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
@@ -21,13 +27,69 @@ class MainViewModel : ViewModel() {
     private var wellbeingAction: WellbeingAction? = null
     private var loggingAction: LoggingAction? = null
 
+    private var contextApi: DriverContextApi? = null
+    private var contextualActionManager: ContextualActionManager? = null
+
+    // StateFlow za trenutni kontekst
+    private val _currentContext = MutableStateFlow(DriverContext(Mood.NEUTRAL, Location.CITY))
+    val currentContext: StateFlow<DriverContext> = _currentContext
+
+    // StateFlow za smart actions
+    private val _smartActions = MutableStateFlow<List<SmartAction>>(emptyList())
+    val smartActions: StateFlow<List<SmartAction>> = _smartActions
+
     fun initActions(context: Context) {
         spotifyAction = SpotifyAction(context)
-        audioAction = AudioAction(context)
         phoneAction = PhoneAction(context)
         navigationAction = NavigationAction(context)
         wellbeingAction = WellbeingAction(context)
         loggingAction = LoggingAction(context)
+
+        contextApi = DriverContextApi(context)
+        contextualActionManager = ContextualActionManager(context)
+
+        // Učitaj početni kontekst
+        refreshContext()
+    }
+
+    /**
+     * Osvežava kontekst sa API-ja i ažurira smart actions
+     */
+    fun refreshContext() {
+        viewModelScope.launch {
+            val context = contextApi?.getCurrentContext() ?: DriverContext(Mood.NEUTRAL, Location.CITY)
+            _currentContext.value = context
+
+            // Auto-manage DND based on mood
+            contextualActionManager?.let { manager ->
+                if (manager.shouldDNDBeActive(context)) {
+                    enableDrivingDND(PhoneAction.DNDMode.SOFT)
+                } else {
+                    disableDrivingDND()
+                }
+            }
+
+            // Update smart actions
+            updateSmartActions()
+        }
+    }
+
+    /**
+     * Ažurira smart actions na osnovu trenutnog konteksta
+     */
+    private fun updateSmartActions() {
+        contextualActionManager?.let { manager ->
+            val actions = manager.getSmartActions(_currentContext.value)
+            _smartActions.value = actions
+        }
+    }
+
+    /**
+     * Mock funkcija za postavljanje konteksta (za testiranje)
+     */
+    fun setMockContext(mood: Mood, location: Location) {
+        contextApi?.setMockContext(mood, location)
+        refreshContext()
     }
 
     // --- NEW: Signal Handler Function ---
@@ -98,14 +160,13 @@ class MainViewModel : ViewModel() {
     fun setSpotifyVolume(volumePercent: Int) {
         spotifyAction?.setSpotifyVolume(volumePercent)
     }
-
-    // Audio Actions
-    fun playNatureSoundscape(type: AudioAction.NatureSoundType) {
-        audioAction?.playNatureSoundscape(type)
+    
+    fun playCalmMusic() {
+        spotifyAction?.playCalmMusic()
     }
-
-    fun stopNatureSoundscape() {
-        audioAction?.stopNatureSoundscape()
+    
+    fun playEnergeticMusic() {
+        spotifyAction?.playEnergeticMusic()
     }
 
     // Phone Actions
@@ -219,5 +280,27 @@ class MainViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         audioAction?.stopNatureSoundscape()
+
+    /**
+     * Izvršava smart action na osnovu ActionType-a
+     */
+    fun executeSmartAction(actionType: ActionType) {
+        when (actionType) {
+            ActionType.SPOTIFY_CALM -> playCalmMusic()
+            ActionType.SPOTIFY_ENERGETIC -> playEnergeticMusic()
+            ActionType.SPOTIFY_PODCAST -> playPodcastOrAudiobook()
+            ActionType.DND_ENABLE -> enableDrivingDND()
+            ActionType.DND_DISABLE -> disableDrivingDND()
+            ActionType.NAV_HOME -> openNavigationTo("", NavigationAction.DestinationType.HOME)
+            ActionType.NAV_REST_STOP -> suggestBreak(NavigationAction.StopType.REST_STOP)
+            ActionType.NAV_COFFEE -> suggestBreak(NavigationAction.StopType.COFFEE)
+            ActionType.BREATHING -> {} // Will navigate to breathing screen
+            ActionType.STRETCH -> {} // Will navigate to stretch screen
+            ActionType.LOG_DRIVE -> logDriveSummary(
+                LoggingAction.Mood.STRESSED,
+                LoggingAction.Scenery.CITY
+            )
+            ActionType.CREATE_REMINDER -> {} // Will open reminder dialog
+        }
     }
 }
