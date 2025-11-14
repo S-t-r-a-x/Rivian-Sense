@@ -7,13 +7,13 @@ plugins {
 android {
     namespace = "com.example.riviansenseapp"
     compileSdk {
-        version = release(36)
+        version = release(34)
     }
 
     defaultConfig {
         applicationId = "com.example.riviansenseapp"
         minSdk = 34
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
