@@ -94,6 +94,7 @@ def inference_loop(data, frames_root, model, folder_name):
     - applies 10-in-a-row hysteresis for mood & scene
     - shows a slideshow of frames with mood/scene overlay (OpenCV)
     - sends Socket.IO 'driver_state' event ONLY when stable mood/scene change
+    - flashes 'SENT TO APP' on the slideshow for ~2s after each emit
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     out_file = os.path.join(script_dir, f"{folder_name}_predictions.txt")
@@ -116,6 +117,7 @@ def inference_loop(data, frames_root, model, folder_name):
     # Keep track of last sent stable state to avoid duplicate emits
     last_sent_mood = None
     last_sent_scene = None
+    last_emit_time = None  # timestamp when we last sent to app
 
     limit = min(1000, len(data))
 
@@ -179,7 +181,7 @@ def inference_loop(data, frames_root, model, folder_name):
             frame_bgr = cv2.imread(img_path)
 
             if frame_bgr is not None:
-                # Optional: overlay mood/scene text
+                # Overlay mood/scene text
                 overlay_text = f"{mood} / {scene}"
                 cv2.putText(
                     frame_bgr,
@@ -191,6 +193,19 @@ def inference_loop(data, frames_root, model, folder_name):
                     2,
                     cv2.LINE_AA
                 )
+
+                # If we sent a message in the last 2 seconds, flash a label
+                if last_emit_time is not None and (time.time() - last_emit_time) < 2.0:
+                    cv2.putText(
+                        frame_bgr,
+                        "SENT TO APP",
+                        (10, 70),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1.0,
+                        (0, 0, 255),   # red
+                        3,
+                        cv2.LINE_AA
+                    )
 
                 cv2.imshow("Rivian Sense - Frames", frame_bgr)
                 # waitKey is needed for imshow to update; 1 ms is enough
@@ -214,6 +229,7 @@ def inference_loop(data, frames_root, model, folder_name):
 
                     last_sent_mood = global_mood
                     last_sent_scene = global_scene
+                    last_emit_time = time.time()  # mark send time
 
             # Simulate real-time frame rate
             time.sleep(0.33)
