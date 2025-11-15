@@ -6,6 +6,7 @@ package com.example.riviansenseapp.context
 data class DriverContext(
     val mood: Mood,
     val location: Location,
+    val stop: Boolean = false,  // Da li smo stali (parking/garage)
     val timestamp: Long = System.currentTimeMillis()
 )
 

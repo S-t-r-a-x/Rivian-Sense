@@ -33,9 +33,10 @@ class MainViewModel : ViewModel() {
     private var contextualActionManager: ContextualActionManager? = null
     private var statsManager: StatsManager? = null
     private var periodicStatsUpdateJob: Job? = null
+    private var previousStopState: Boolean = false  // Tracking za stop promenu
 
     // StateFlow za trenutni kontekst
-    private val _currentContext = MutableStateFlow(DriverContext(Mood.NEUTRAL, Location.CITY))
+    private val _currentContext = MutableStateFlow(DriverContext(Mood.NEUTRAL, Location.CITY, stop = false))
     val currentContext: StateFlow<DriverContext> = _currentContext
 
     // StateFlow za smart actions
@@ -72,12 +73,32 @@ class MainViewModel : ViewModel() {
     private fun startWebSocketListener() {
         contextApi?.startContextMonitoring { newContext ->
             viewModelScope.launch {
+                // Proveri da li se promenio stop status
+                val stopChanged = previousStopState != newContext.stop
+                
+                if (stopChanged) {
+                    if (newContext.stop) {
+                        // Vozač je stao - završi vožnju i prikaži podsetke
+                        Log.d("MainViewModel", "🛑 STOP detected - ending drive session")
+                        val driveDuration = statsManager?.endDriveSession() ?: 0L
+                        Log.d("MainViewModel", "📊 Drive ended: ${driveDuration}s")
+                        
+                        // Prikaži sve aktivne podsetke kao notifikacije
+                        loggingAction?.showActiveRemindersNotifications()
+                    } else {
+                        // Vozač se ponovo kreće - počni novu vožnju
+                        Log.d("MainViewModel", "🚗 MOVING detected - starting new drive session")
+                        statsManager?.startDriveSession(newContext)
+                    }
+                    previousStopState = newContext.stop
+                }
+                
                 _currentContext.value = newContext
                 
                 // Update statistiku
                 statsManager?.updateContext(newContext)
                 
-                android.util.Log.d("MainViewModel", "🔄 Context updated: ${newContext.mood} @ ${newContext.location}")
+                android.util.Log.d("MainViewModel", "🔄 Context updated: ${newContext.mood} @ ${newContext.location} [stop=${newContext.stop}]")
                 
                 // Auto-manage DND based on mood
                 contextualActionManager?.let { manager ->
@@ -122,7 +143,7 @@ class MainViewModel : ViewModel() {
      */
     fun refreshContext() {
         viewModelScope.launch {
-            val context = contextApi?.getCurrentContext() ?: DriverContext(Mood.NEUTRAL, Location.CITY)
+            val context = contextApi?.getCurrentContext() ?: DriverContext(Mood.NEUTRAL, Location.CITY, stop = false)
             _currentContext.value = context
 
             // Auto-manage DND based on mood
@@ -161,9 +182,32 @@ class MainViewModel : ViewModel() {
     /**
      * Mock funkcija za postavljanje konteksta (za testiranje)
      */
-    fun setMockContext(mood: Mood, location: Location) {
-        contextApi?.setMockContext(mood, location)
-        refreshContext()
+    fun setMockContext(mood: Mood, location: Location, stop: Boolean = false) {
+        viewModelScope.launch {
+            // Proveri da li se promenio stop status (ista logika kao WebSocket listener)
+            val stopChanged = previousStopState != stop
+            
+            if (stopChanged) {
+                if (stop) {
+                    // Vozač je stao - završi vožnju i prikaži podsetke
+                    Log.d("MainViewModel", "🛑 MOCK STOP detected - ending drive session")
+                    val driveDuration = statsManager?.endDriveSession() ?: 0L
+                    Log.d("MainViewModel", "📊 Drive ended: ${driveDuration}s")
+                    
+                    // Prikaži sve aktivne podsetke kao notifikacije
+                    loggingAction?.showActiveRemindersNotifications()
+                } else {
+                    // Vozač se ponovo kreće - počni novu vožnju
+                    Log.d("MainViewModel", "🚗 MOCK MOVING detected - starting new drive session")
+                    val newContext = DriverContext(mood, location, stop)
+                    statsManager?.startDriveSession(newContext)
+                }
+                previousStopState = stop
+            }
+            
+            contextApi?.setMockContext(mood, location, stop)
+            refreshContext()
+        }
     }
 
     // Spotify Actions
@@ -334,9 +378,9 @@ class MainViewModel : ViewModel() {
         // Zaustavi periodični update
         periodicStatsUpdateJob?.cancel()
         
-        // Završi drive session i sačuvaj statistiku
-        val driveDuration = statsManager?.endDriveSession() ?: 0L
-        Log.d("MainViewModel", "🏁 Drive session ended: ${driveDuration}s")
+        // NAPOMENA: Drive session se završava automatski kada stop=true
+        // Ne treba ručno završavati ovde
+        Log.d("MainViewModel", "🧹 ViewModel cleared")
         
         stopWebSocketListener()
     }

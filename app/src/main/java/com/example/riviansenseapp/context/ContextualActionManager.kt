@@ -57,6 +57,13 @@ class ContextualActionManager(private val context: Context) {
     fun getSmartActions(driverContext: DriverContext): List<SmartAction> {
         val actions = mutableListOf<SmartAction>()
         
+        // 🛑 PRIORITY: Ako je vozac stao, dodaj stop akcije na vrh liste
+        if (driverContext.stop) {
+            Log.d("ActionFilter", "🛑 STOP detected - adding stop-specific actions")
+            actions.addAll(getStopActions(driverContext.mood, driverContext.location))
+        }
+        
+        // Dodaj akcije na osnovu mood-a
         when (driverContext.mood) {
             Mood.NERVOUS -> {
                 actions.addAll(getNervousActions(driverContext.location))
@@ -83,40 +90,62 @@ class ContextualActionManager(private val context: Context) {
         return filteredActions.sortedBy { it.priority }
     }
     
+    /**
+     * Akcije koje se prikazuju kada je vozac stao (stop = true)
+     * Ove akcije imaju najvisi prioritet
+     * NAPOMENA: Reminders se prikazuju automatski kao notifikacije, ne kao akcija
+     */
+    private fun getStopActions(mood: Mood, location: Location): List<SmartAction> {
+        val actions = mutableListOf<SmartAction>()
+        
+        // STRETCH EXERCISES (kada si stao)
+        actions.add(SmartAction(
+            id = "stretch_stop",
+            title = "Stretch Exercises",
+            description = "Stretch while you wait",
+            icon = "🤸",
+            priority = 0,
+            action = ActionType.STRETCH,
+            reason = "Use the break to stretch"
+        ))
+        
+        return actions
+    }
+    
     private fun getNervousActions(location: Location): List<SmartAction> {
         val actions = mutableListOf<SmartAction>()
         
         // DND mode (highest priority for nervous)
         actions.add(SmartAction(
             id = "dnd_nervous",
-            title = "Uključi Ne Uznemiravaj",
-            description = "Blokiraj pozive i notifikacije",
+            title = "Enable Do Not Disturb",
+            description = "Block calls and notifications",
             icon = "🔕",
             priority = 1,
             action = ActionType.DND_ENABLE,
-            reason = "Detektovana nervoza - smanjite distrakcije"
+            reason = "Nervousness detected - reduce distractions"
         ))
         
         // Breathing exercise
         actions.add(SmartAction(
             id = "breathing_nervous",
-            title = "Vežba Disanja",
-            description = "4-minutna tehnika smirivanja",
+            title = "Breathing Exercise",
+            description = "4-minute calming technique",
             icon = "🫁",
             priority = 2,
             action = ActionType.BREATHING,
-            reason = "Reguliši disanje da se smiriš"
+            reason = "Regulate breathing to calm down"
         ))
         
         // Calm music
         actions.add(SmartAction(
             id = "spotify_calm",
-            title = "Opuštajuća Muzika",
-            description = "Pustite mirnu muziku",
+            title = "Calm Music",
+            description = "Play peaceful music",
             icon = "🎵",
             priority = 3,
             action = ActionType.SPOTIFY_CALM,
-            reason = "Muzika pomaže pri smirivanju"
+            reason = "Music helps with calming"
         ))
         
         // Location-specific actions
@@ -125,48 +154,48 @@ class ContextualActionManager(private val context: Context) {
                 // U gradu, predloži pauzu
                 actions.add(SmartAction(
                     id = "coffee_nervous_city",
-                    title = "Predlog: Pauza za Kafu",
-                    description = "Nađi najbližu kafeteriju",
+                    title = "Suggestion: Coffee Break",
+                    description = "Find nearest coffee shop",
                     icon = "☕",
                     priority = 4,
                     action = ActionType.NAV_COFFEE,
-                    reason = "Gradska gužva - vreme za pauzu"
+                    reason = "City traffic - time for a break"
                 ))
             }
             Location.HIGHWAY -> {
                 // Na autoputu, predloži odmorište
                 actions.add(SmartAction(
                     id = "rest_nervous_highway",
-                    title = "Predlog: Odmorište",
-                    description = "Nađi najbliže odmorište",
+                    title = "Suggestion: Rest Stop",
+                    description = "Find nearest rest area",
                     icon = "🅿️",
                     priority = 4,
                     action = ActionType.NAV_REST_STOP,
-                    reason = "Dugačka vožnja - napravi pauzu"
+                    reason = "Long drive - take a break"
                 ))
             }
             Location.FOREST -> {
                 // U šumi, samo stretch
                 actions.add(SmartAction(
                     id = "stretch_nervous_forest",
-                    title = "Stretch Vežbe",
-                    description = "5-minutne vežbe istezanja",
+                    title = "Stretch Exercises",
+                    description = "5-minute stretching",
                     icon = "🤸",
                     priority = 4,
                     action = ActionType.STRETCH,
-                    reason = "Iskoristi prirodu za relaksaciju"
+                    reason = "Use nature for relaxation"
                 ))
             }
             Location.GARAGE -> {
                 // U garaži, završi vožnju
                 actions.add(SmartAction(
                     id = "log_nervous_garage",
-                    title = "Završi Vožnju",
-                    description = "Sačuvaj statistiku vožnje",
+                    title = "End Drive",
+                    description = "Save drive statistics",
                     icon = "📊",
                     priority = 4,
                     action = ActionType.LOG_DRIVE,
-                    reason = "Stigao si - vreme za odmor"
+                    reason = "You've arrived - time to rest"
                 ))
             }
         }
@@ -180,23 +209,23 @@ class ContextualActionManager(private val context: Context) {
         // Energetic music (highest priority for tired)
         actions.add(SmartAction(
             id = "spotify_energetic",
-            title = "Energična Muzika",
-            description = "Upbeat muzika za budnost",
+            title = "Energetic Music",
+            description = "Upbeat music for alertness",
             icon = "⚡",
             priority = 1,
             action = ActionType.SPOTIFY_ENERGETIC,
-            reason = "Detektovan umor - povećaj energiju"
+            reason = "Fatigue detected - boost energy"
         ))
         
         // Stretch exercises
         actions.add(SmartAction(
             id = "stretch_tired",
-            title = "Stretch Vežbe",
-            description = "Protegni se za 5 minuta",
+            title = "Stretch Exercises",
+            description = "Stretch for 5 minutes",
             icon = "🤸",
             priority = 2,
             action = ActionType.STRETCH,
-            reason = "Aktiviraj mišiće i poboljšaj cirkulaciju"
+            reason = "Activate muscles and improve circulation"
         ))
         
         // Location-specific actions
@@ -205,45 +234,45 @@ class ContextualActionManager(private val context: Context) {
                 // Na autoputu, hitno predloži pauzu
                 actions.add(SmartAction(
                     id = "rest_tired_highway",
-                    title = "⚠️ HITNO: Odmorište",
-                    description = "Nađi najbliže odmorište",
+                    title = "⚠️ URGENT: Rest Stop",
+                    description = "Find nearest rest area",
                     icon = "🛑",
                     priority = 1, // Override priority
                     action = ActionType.NAV_REST_STOP,
-                    reason = "OPASNOST: Umor + autoput = visok rizik"
+                    reason = "DANGER: Fatigue + highway = high risk"
                 ))
             }
             Location.CITY -> {
                 actions.add(SmartAction(
                     id = "coffee_tired_city",
-                    title = "Predlog: Pauza za Kafu",
-                    description = "Kofeinska pauza",
+                    title = "Suggestion: Coffee Break",
+                    description = "Caffeine break",
                     icon = "☕",
                     priority = 3,
                     action = ActionType.NAV_COFFEE,
-                    reason = "Osvežite se kafom"
+                    reason = "Refresh with coffee"
                 ))
             }
             Location.GARAGE -> {
                 actions.add(SmartAction(
                     id = "log_tired_garage",
-                    title = "Završi Vožnju",
-                    description = "Sačuvaj statistiku i odmori se",
+                    title = "End Drive",
+                    description = "Save statistics and rest",
                     icon = "📊",
                     priority = 3,
                     action = ActionType.LOG_DRIVE,
-                    reason = "Stigao si - vreme za odmor"
+                    reason = "You've arrived - time to rest"
                 ))
             }
             Location.FOREST -> {
                 actions.add(SmartAction(
                     id = "breathing_tired_forest",
-                    title = "Vežba Disanja na Svežem Vazduhu",
-                    description = "Duboko disanje",
+                    title = "Fresh Air Breathing Exercise",
+                    description = "Deep breathing",
                     icon = "🫁",
                     priority = 3,
                     action = ActionType.BREATHING,
-                    reason = "Svež vazduh + kiseonik = više energije"
+                    reason = "Fresh air + oxygen = more energy"
                 ))
             }
         }
@@ -251,12 +280,12 @@ class ContextualActionManager(private val context: Context) {
         // Podcast suggestion
         actions.add(SmartAction(
             id = "podcast_tired",
-            title = "Zanimljiv Podcast",
-            description = "Mentalna stimulacija",
+            title = "Interesting Podcast",
+            description = "Mental stimulation",
             icon = "🎙️",
             priority = 4,
             action = ActionType.SPOTIFY_PODCAST,
-            reason = "Interesantan sadržaj drži pažnju"
+            reason = "Interesting content keeps attention"
         ))
         
         return actions
@@ -270,45 +299,45 @@ class ContextualActionManager(private val context: Context) {
             Location.CITY -> {
                 actions.add(SmartAction(
                     id = "nav_home_neutral",
-                    title = "Navigacija Kući",
-                    description = "Najbrža ruta",
+                    title = "Navigate Home",
+                    description = "Fastest route",
                     icon = "🏠",
                     priority = 1,
                     action = ActionType.NAV_HOME,
-                    reason = "Standardna navigacija"
+                    reason = "Standard navigation"
                 ))
             }
             Location.HIGHWAY -> {
                 actions.add(SmartAction(
                     id = "podcast_neutral_highway",
                     title = "Podcast",
-                    description = "Zabavan sadržaj za put",
+                    description = "Fun content for the road",
                     icon = "🎙️",
                     priority = 1,
                     action = ActionType.SPOTIFY_PODCAST,
-                    reason = "Duga vožnja - vreme za podcast"
+                    reason = "Long drive - time for podcast"
                 ))
             }
             Location.GARAGE -> {
                 actions.add(SmartAction(
                     id = "log_neutral_garage",
-                    title = "Završi Vožnju",
-                    description = "Sačuvaj statistiku",
+                    title = "End Drive",
+                    description = "Save statistics",
                     icon = "📊",
                     priority = 1,
                     action = ActionType.LOG_DRIVE,
-                    reason = "Završi vožnju"
+                    reason = "End the drive"
                 ))
             }
             Location.FOREST -> {
                 actions.add(SmartAction(
                     id = "spotify_calm_forest",
-                    title = "Opuštajuća Muzika",
-                    description = "Mirna muzika za relaksaciju",
+                    title = "Calm Music",
+                    description = "Peaceful music for relaxation",
                     icon = "🎵",
                     priority = 1,
                     action = ActionType.SPOTIFY_CALM,
-                    reason = "Uživaj u prirodi uz muziku"
+                    reason = "Enjoy nature with music"
                 ))
             }
         }

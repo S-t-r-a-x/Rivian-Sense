@@ -40,6 +40,7 @@ fun TestActionsScreen(
     onPlayChime: () -> Unit = {},
     onShowStreak: () -> Unit = {},
     onSetContext: (String, String) -> Unit = { _, _ -> },
+    onSetStop: (Boolean) -> Unit = {},
     onResetStats: () -> Unit = {},
     onPrintStats: () -> Unit = {}
 ) {
@@ -153,6 +154,32 @@ fun TestActionsScreen(
                 onSetContext("", "GARAGE")
             }
         }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = "Stop Status:",
+            color = Color(0xFF94A3B8),
+            fontSize = 12.sp,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            StopButton("🛑 Stop = TRUE", isStop = true, modifier = Modifier.weight(1f)) {
+                onSetStop(true)
+            }
+            StopButton("🚗 Stop = FALSE", isStop = false, modifier = Modifier.weight(1f)) {
+                onSetStop(false)
+            }
+        }
+        Text(
+            text = "TRUE: Prikazuje reminders notifikacije + stretch\nFALSE: Nastavlja vožnju",
+            color = Color(0xFF64748B),
+            fontSize = 11.sp,
+            modifier = Modifier.padding(top = 4.dp)
+        )
         
         Spacer(modifier = Modifier.height(24.dp))
         
@@ -292,6 +319,31 @@ fun SmallButton(
             text = text,
             color = Color.White,
             fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
+fun StopButton(
+    text: String,
+    isStop: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.padding(vertical = 4.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isStop) Color(0xFFDC2626) else Color(0xFF16A34A)
+        ),
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues(8.dp)
+    ) {
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }

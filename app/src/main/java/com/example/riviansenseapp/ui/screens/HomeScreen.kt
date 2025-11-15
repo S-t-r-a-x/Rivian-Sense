@@ -171,45 +171,6 @@ fun HomeScreen(
                 .padding(20.dp)
         ) {
             Column {
-                // Location
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                Color(0xFF06B6D4).copy(alpha = 0.1f), // cyan-500 10%
-                                RoundedCornerShape(12.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = Color(0xFF22D3EE), // cyan-400
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.width(16.dp))
-                    
-                    Column {
-                        Text(
-                            text = "45.5231° N, 122.6765° W",
-                            fontSize = 12.sp,
-                            color = Color(0xFF94A3B8),
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                        Text(
-                            text = "Forest Park Trail, Portland, OR",
-                            fontSize = 14.sp,
-                            color = Color.White
-                        )
-                    }
-                }
-                
                 // Scenery
                 Row(
                     verticalAlignment = Alignment.Top,
@@ -368,35 +329,6 @@ fun HomeScreen(
                     )
                 }
             }
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Old action card for reference (can be removed later)
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text(
-                text = "Other Actions",
-                fontSize = 14.sp,
-                color = Color(0xFF64748B),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            
-            ActionCard(
-                icon = Icons.Default.Star,
-                iconTint = Color(0xFF22D3EE),
-                title = "Manual Actions",
-                description = "Access all available actions",
-                actionText = "Apply Lighting",
-                onAction = { /* TODO */ },
-                gradientColors = listOf(
-                    Color(0xFF164E63), // cyan-950
-                    Color(0xFF0F172A)  // slate-900
-                ),
-                borderColor = Color(0xFF155E75) // cyan-900
-            )
         }
         
         Spacer(modifier = Modifier.height(24.dp))

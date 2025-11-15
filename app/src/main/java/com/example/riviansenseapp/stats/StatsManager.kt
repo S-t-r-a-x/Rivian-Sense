@@ -256,6 +256,37 @@ class StatsManager(context: Context) {
     }
     
     /**
+     * Ispisuje sve statistike u Logcat (za testiranje)
+     */
+    fun printStats() {
+        val stats = getStats()
+        val unlockedBadges = getUnlockedBadges()
+        
+        Log.d(TAG, "\n" + "=".repeat(60))
+        Log.d(TAG, "📊 === DRIVE STATISTICS ===")
+        Log.d(TAG, "=".repeat(60))
+        Log.d(TAG, "🚗 Total Drives: ${stats.totalDrives}")
+        Log.d(TAG, "⏱️  Total Drive Time: ${stats.formatTime(stats.totalDriveTime)}")
+        Log.d(TAG, "")
+        Log.d(TAG, "😰 MOOD BREAKDOWN:")
+        Log.d(TAG, "  Nervous: ${stats.formatTime(stats.nervousTime)} (${stats.getMoodPercentage(Mood.NERVOUS)}%)")
+        Log.d(TAG, "  Tired: ${stats.formatTime(stats.tiredTime)} (${stats.getMoodPercentage(Mood.TIRED)}%)")
+        Log.d(TAG, "  Neutral: ${stats.formatTime(stats.neutralTime)} (${stats.getMoodPercentage(Mood.NEUTRAL)}%)")
+        Log.d(TAG, "")
+        Log.d(TAG, "🗺️  LOCATION BREAKDOWN:")
+        Log.d(TAG, "  City: ${stats.formatTime(stats.cityTime)}")
+        Log.d(TAG, "  Highway: ${stats.formatTime(stats.highwayTime)}")
+        Log.d(TAG, "  Forest: ${stats.formatTime(stats.forestTime)}")
+        Log.d(TAG, "  Garage: ${stats.formatTime(stats.garageTime)}")
+        Log.d(TAG, "")
+        Log.d(TAG, "🏆 UNLOCKED BADGES: ${unlockedBadges.size}")
+        unlockedBadges.forEach { badge ->
+            Log.d(TAG, "  ${badge.icon} ${badge.title} (${badge.tier})")
+        }
+        Log.d(TAG, "=".repeat(60) + "\n")
+    }
+    
+    /**
      * Vraća procenat progresa za određeni badge
      */
     fun getBadgeProgress(badge: Badge): Float {

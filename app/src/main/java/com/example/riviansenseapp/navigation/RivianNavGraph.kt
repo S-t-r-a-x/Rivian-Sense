@@ -138,16 +138,27 @@ fun RivianNavGraph(
                     if (mood.isNotEmpty()) {
                         viewModel.setMockContext(
                             com.example.riviansenseapp.context.Mood.valueOf(mood),
-                            currentContext.location
+                            currentContext.location,
+                            currentContext.stop
                         )
                     }
                     if (location.isNotEmpty()) {
                         viewModel.setMockContext(
                             currentContext.mood,
-                            com.example.riviansenseapp.context.Location.valueOf(location)
+                            com.example.riviansenseapp.context.Location.valueOf(location),
+                            currentContext.stop
                         )
                     }
-                }
+                },
+                onSetStop = { stop ->
+                    viewModel.setMockContext(
+                        currentContext.mood,
+                        currentContext.location,
+                        stop
+                    )
+                },
+                onResetStats = { viewModel.getStatsManager()?.resetAllStats() },
+                onPrintStats = { viewModel.getStatsManager()?.printStats() }
             )
         }
         

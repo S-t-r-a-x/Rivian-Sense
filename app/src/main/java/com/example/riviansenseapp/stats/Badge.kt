@@ -44,32 +44,32 @@ object BadgeDefinitions {
         // ========== UKUPAN BROJ VOŽNJI ==========
         Badge(
             id = "first_drive",
-            title = "Prva Vožnja",
-            description = "Završi svoju prvu vožnju",
+            title = "First Drive",
+            description = "Complete your first drive",
             icon = "🚗",
             requirement = BadgeRequirement.TotalDrives(1),
             tier = BadgeTier.BRONZE
         ),
         Badge(
             id = "novice_driver",
-            title = "Početnik",
-            description = "Završi 10 vožnji",
+            title = "Novice Driver",
+            description = "Complete 10 drives",
             icon = "🛣️",
             requirement = BadgeRequirement.TotalDrives(10),
             tier = BadgeTier.BRONZE
         ),
         Badge(
             id = "experienced_driver",
-            title = "Iskusan Vozač",
-            description = "Završi 50 vožnji",
+            title = "Experienced Driver",
+            description = "Complete 50 drives",
             icon = "🏁",
             requirement = BadgeRequirement.TotalDrives(50),
             tier = BadgeTier.SILVER
         ),
         Badge(
             id = "veteran_driver",
-            title = "Veteran",
-            description = "Završi 100 vožnji",
+            title = "Veteran Driver",
+            description = "Complete 100 drives",
             icon = "🏆",
             requirement = BadgeRequirement.TotalDrives(100),
             tier = BadgeTier.GOLD
@@ -78,57 +78,57 @@ object BadgeDefinitions {
         // ========== UKUPNO VREME VOŽNJE ==========
         Badge(
             id = "one_hour",
-            title = "Prvi Sat",
-            description = "Provedi 1 sat na putu",
+            title = "First Hour",
+            description = "Spend 1 hour on the road",
             icon = "⏱️",
-            requirement = BadgeRequirement.TotalTime(3600), // 1 sat
+            requirement = BadgeRequirement.TotalTime(3600), // 1 hour
             tier = BadgeTier.BRONZE
         ),
         Badge(
             id = "ten_hours",
-            title = "10 Sati",
-            description = "Provedi 10 sati na putu",
+            title = "10 Hours",
+            description = "Spend 10 hours on the road",
             icon = "⏰",
-            requirement = BadgeRequirement.TotalTime(36000), // 10 sati
+            requirement = BadgeRequirement.TotalTime(36000), // 10 hours
             tier = BadgeTier.SILVER
         ),
         Badge(
             id = "fifty_hours",
-            title = "Pola Stotine",
-            description = "Provedi 50 sati na putu",
+            title = "Fifty Hours",
+            description = "Spend 50 hours on the road",
             icon = "🕐",
-            requirement = BadgeRequirement.TotalTime(180000), // 50 sati
+            requirement = BadgeRequirement.TotalTime(180000), // 50 hours
             tier = BadgeTier.GOLD
         ),
         Badge(
             id = "hundred_hours",
-            title = "100 Sati",
-            description = "Provedi 100 sati na putu",
+            title = "100 Hours",
+            description = "Spend 100 hours on the road",
             icon = "💯",
-            requirement = BadgeRequirement.TotalTime(360000), // 100 sati
+            requirement = BadgeRequirement.TotalTime(360000), // 100 hours
             tier = BadgeTier.PLATINUM
         ),
         
         // ========== SMIREN VOZAČ (NEUTRAL MOOD) ==========
         Badge(
             id = "calm_driver",
-            title = "Smiren Vozač",
-            description = "Provedi 5 sati u neutralnom stanju",
+            title = "Calm Driver",
+            description = "Spend 5 hours in neutral mood",
             icon = "😌",
             requirement = BadgeRequirement.MoodTime(
                 com.example.riviansenseapp.context.Mood.NEUTRAL,
-                18000 // 5 sati
+                18000 // 5 hours
             ),
             tier = BadgeTier.SILVER
         ),
         Badge(
             id = "zen_master",
-            title = "Zen Majstor",
-            description = "Provedi 20 sati u neutralnom stanju",
+            title = "Zen Master",
+            description = "Spend 20 hours in neutral mood",
             icon = "🧘",
             requirement = BadgeRequirement.MoodTime(
                 com.example.riviansenseapp.context.Mood.NEUTRAL,
-                72000 // 20 sati
+                72000 // 20 hours
             ),
             tier = BadgeTier.GOLD
         ),
@@ -136,12 +136,12 @@ object BadgeDefinitions {
         // ========== CITY DRIVING ==========
         Badge(
             id = "city_explorer",
-            title = "Gradski Istraživač",
-            description = "Provedi 10 sati u gradu",
+            title = "City Explorer",
+            description = "Spend 10 hours in the city",
             icon = "🌆",
             requirement = BadgeRequirement.LocationTime(
                 com.example.riviansenseapp.context.Location.CITY,
-                36000 // 10 sati
+                36000 // 10 hours
             ),
             tier = BadgeTier.SILVER
         ),
@@ -149,23 +149,23 @@ object BadgeDefinitions {
         // ========== HIGHWAY DRIVING ==========
         Badge(
             id = "highway_cruiser",
-            title = "Autoputski Cruiser",
-            description = "Provedi 10 sati na autoputu",
+            title = "Highway Cruiser",
+            description = "Spend 10 hours on the highway",
             icon = "🛣️",
             requirement = BadgeRequirement.LocationTime(
                 com.example.riviansenseapp.context.Location.HIGHWAY,
-                36000 // 10 sati
+                36000 // 10 hours
             ),
             tier = BadgeTier.SILVER
         ),
         Badge(
             id = "highway_master",
-            title = "Kralj Autoputa",
-            description = "Provedi 50 sati na autoputu",
+            title = "Highway Master",
+            description = "Spend 50 hours on the highway",
             icon = "🚀",
             requirement = BadgeRequirement.LocationTime(
                 com.example.riviansenseapp.context.Location.HIGHWAY,
-                180000 // 50 sati
+                180000 // 50 hours
             ),
             tier = BadgeTier.GOLD
         ),
@@ -173,12 +173,12 @@ object BadgeDefinitions {
         // ========== FOREST DRIVING ==========
         Badge(
             id = "nature_lover",
-            title = "Ljubitelj Prirode",
-            description = "Provedi 5 sati u šumi",
+            title = "Nature Lover",
+            description = "Spend 5 hours in the forest",
             icon = "🌲",
             requirement = BadgeRequirement.LocationTime(
                 com.example.riviansenseapp.context.Location.FOREST,
-                18000 // 5 sati
+                18000 // 5 hours
             ),
             tier = BadgeTier.SILVER
         ),
@@ -186,12 +186,12 @@ object BadgeDefinitions {
         // ========== STRESS MANAGEMENT ==========
         Badge(
             id = "stress_survivor",
-            title = "Preživeo Stres",
-            description = "Prebrodi 5 sati nervoznog stanja",
+            title = "Stress Survivor",
+            description = "Endure 5 hours of nervous mood",
             icon = "😰",
             requirement = BadgeRequirement.MoodTime(
                 com.example.riviansenseapp.context.Mood.NERVOUS,
-                18000 // 5 sati
+                18000 // 5 hours
             ),
             tier = BadgeTier.BRONZE
         ),
@@ -199,12 +199,12 @@ object BadgeDefinitions {
         // ========== FATIGUE MANAGEMENT ==========
         Badge(
             id = "night_owl",
-            title = "Noćna Ptica",
-            description = "Provedi 5 sati umornog stanja (verovatno noću)",
+            title = "Night Owl",
+            description = "Spend 5 hours in tired mood (probably at night)",
             icon = "🦉",
             requirement = BadgeRequirement.MoodTime(
                 com.example.riviansenseapp.context.Mood.TIRED,
-                18000 // 5 sati
+                18000 // 5 hours
             ),
             tier = BadgeTier.BRONZE
         ),
@@ -212,10 +212,10 @@ object BadgeDefinitions {
         // ========== LONG DRIVES ==========
         Badge(
             id = "marathon_driver",
-            title = "Maratonac",
-            description = "Završi vožnju dužu od 3 sata",
+            title = "Marathon Driver",
+            description = "Complete a drive longer than 3 hours",
             icon = "🏃",
-            requirement = BadgeRequirement.LongDrive(10800), // 3 sata
+            requirement = BadgeRequirement.LongDrive(10800), // 3 hours
             tier = BadgeTier.GOLD
         )
     )

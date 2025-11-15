@@ -15,24 +15,24 @@ data class SmartAction(
 
 enum class ActionType {
     // Spotify variants
-    SPOTIFY_CALM,      // Opuštajuća muzika
-    SPOTIFY_ENERGETIC, // Energična muzika
+    SPOTIFY_CALM,      // Calm music
+    SPOTIFY_ENERGETIC, // Energetic music
     SPOTIFY_PODCAST,   // Podcast
     
     // Phone
-    DND_ENABLE,        // Uključi DND
-    DND_DISABLE,       // Isključi DND
+    DND_ENABLE,        // Enable DND
+    DND_DISABLE,       // Disable DND
     
     // Navigation
-    NAV_HOME,          // Navigacija kući
-    NAV_REST_STOP,     // Predlog pauze
-    NAV_COFFEE,        // Predlog kafe
+    NAV_HOME,          // Navigate home
+    NAV_REST_STOP,     // Rest stop suggestion
+    NAV_COFFEE,        // Coffee suggestion
     
     // Wellbeing
-    BREATHING,         // Vežba disanja
-    STRETCH,           // Stretch vežbe
+    BREATHING,         // Breathing exercise
+    STRETCH,           // Stretch exercises
     
     // Logging
-    LOG_DRIVE,         // Završi vožnju
-    CREATE_REMINDER    // Kreiraj reminder
+    LOG_DRIVE,         // End drive
+    CREATE_REMINDER    // Create reminder
 }
