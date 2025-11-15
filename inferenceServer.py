@@ -88,7 +88,7 @@ def predict_entry(entry, frame_dir, model):
 
 def inference_loop(data, frames_root, model, folder_name):
     """
-    Runs in a background thread:
+    Real inference loop (A–D):
     - iterates over frames
     - does inference
     - applies 10-in-a-row hysteresis for mood & scene
@@ -238,55 +238,191 @@ def inference_loop(data, frames_root, model, folder_name):
     print(f"\n🎉 Finished real-time prediction for {folder_name}! Output saved.\n")
 
 
+def fake_inference_loop_from_txt(txt_path, folder_name):
+    """
+    Fake mode (E):
+    - reads lines from E_metadata.txt
+    - each line has format like: `121 | frame_121.jpg -> Relaxed / City`
+    - forwards line-by-line as if it was a real run
+    - applies SAME 10-in-a-row hysteresis on mood/scene
+    - sends Socket.IO 'driver_state' events in the SAME format
+    """
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    out_file = os.path.join(script_dir, f"{folder_name}_fake_predictions.txt")
+    print(f"📄 Fake mode output log: {out_file}\n")
+
+    if not os.path.exists(txt_path):
+        print(f"❌ Fake metadata file not found: {txt_path}")
+        return
+
+    with open(txt_path, "r", encoding="utf-8") as f_in:
+        lines = [ln.strip() for ln in f_in.readlines() if ln.strip()]
+
+    # --------------------
+    # GLOBAL STABLE STATE + STREAK LOGIC (same as real)
+    # --------------------
+    global_mood = None
+    global_scene = None
+
+    mood_streak_value = None
+    mood_streak_count = 0
+
+    scene_streak_value = None
+    scene_streak_count = 0
+
+    CHANGE_THRESHOLD = 10
+
+    last_sent_mood = None
+    last_sent_scene = None
+    last_emit_time = None  # not used visually here, but kept for parity
+
+    with open(out_file, "w", encoding="utf-8") as out:
+        out.write(f"=== FAKE run from {txt_path} ===\n\n")
+
+        for raw in lines:
+            # Expect format: "121 | frame_121.jpg -> Relaxed / City"
+            try:
+                left, right = raw.split("->")
+                left = left.strip()
+                right = right.strip()
+
+                # left: "121 | frame_121.jpg"
+                idx_part, frame_part = left.split("|")
+                frame_index = int(idx_part.strip())
+                frame_name = frame_part.strip()
+
+                # right: "Relaxed / City"
+                mood_str, scene_str = right.split("/")
+                mood = mood_str.strip()
+                scene = scene_str.strip()
+            except Exception as e:
+                print(f"⚠️ Could not parse line: {raw}  (error: {e})")
+                continue
+
+            # --------------------
+            # Hysteresis logic (same as real)
+            # --------------------
+            # MOOD
+            if mood_streak_value != mood:
+                mood_streak_value = mood
+                mood_streak_count = 1
+            else:
+                mood_streak_count += 1
+
+            if mood_streak_count == CHANGE_THRESHOLD:
+                if global_mood != mood_streak_value:
+                    if global_mood is not None:
+                        change_line = f"[MOOD CHANGE] {global_mood} → {mood_streak_value}"
+                        print(change_line)
+                        out.write(change_line + "\n")
+                    global_mood = mood_streak_value
+
+            # SCENE
+            if scene_streak_value != scene:
+                scene_streak_value = scene
+                scene_streak_count = 1
+            else:
+                scene_streak_count += 1
+
+            if scene_streak_count == CHANGE_THRESHOLD:
+                if global_scene != scene_streak_value:
+                    if global_scene is not None:
+                        change_line = f"[SCENE CHANGE] {global_scene} → {scene_streak_value}"
+                        print(change_line)
+                        out.write(change_line + "\n")
+                    global_scene = scene_streak_value
+
+            # Log the line as we replay it
+            line = f"{frame_index:03d} | {frame_name} -> {mood} / {scene}"
+            print(line)
+            out.write(line + "\n")
+            out.flush()
+
+            # Emit to client when stable state changes (same condition)
+            if global_mood is not None and global_scene is not None:
+                if global_mood != last_sent_mood or global_scene != last_sent_scene:
+                    payload = {
+                        "mood": global_mood,
+                        "scene": global_scene,
+                        "frame_index": frame_index,
+                        "frame": frame_name
+                    }
+                    print(f"📤 [FAKE] Emitting 'driver_state' to clients: {payload}")
+                    socketio.emit('driver_state', payload, namespace='/')
+
+                    last_sent_mood = global_mood
+                    last_sent_scene = global_scene
+                    last_emit_time = time.time()
+
+            # Simulate real-time streaming
+            time.sleep(0.33)
+
+    print(f"\n🎉 Finished FAKE replay from {txt_path}! Output saved.\n")
+
+
 # ============================================================
 #                          MAIN
 # ============================================================
 if __name__ == '__main__':
-    # --------------------
-    # 1) PREPARE DATASET + MODEL
-    # --------------------
     script_dir = os.path.dirname(os.path.abspath(__file__))
     dataset_root = os.path.abspath(os.path.join(script_dir, "..", "dataset"))
 
-    folder = input("Choose dataset to run (A, B, C, or D): ").strip().upper()
-    if folder not in ["A", "B", "C", "D"]:
-        print("❌ Invalid choice! Use A, B, C, or D.")
+    folder = input("Choose dataset to run (A, B, C, D, or E): ").strip().upper()
+
+    if folder in ["A", "B", "C", "D"]:
+        # --------------------
+        # REAL DATA PATHS
+        # --------------------
+        mapping_path = os.path.join(dataset_root, folder, "mapping_hardcoded.json")
+        frames_root = os.path.dirname(mapping_path)
+
+        if not os.path.exists(mapping_path):
+            print(f"❌ No mapping_hardcoded.json found for folder {folder}")
+            raise SystemExit(1)
+
+        print(f"\n📂 Loading dataset {folder} ...")
+        with open(mapping_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        print("🧠 Loading model...")
+        model_path = os.path.join(script_dir, "model.pth")
+        if not os.path.exists(model_path):
+            print(f"❌ model.pth not found at: {model_path}")
+            raise SystemExit(1)
+
+        model = RivianModel()
+        model.load_state_dict(torch.load(model_path, map_location="cpu"))
+        model.eval()
+        print("✅ Model loaded!\n")
+
+        # Start real inference thread
+        inf_thread = threading.Thread(
+            target=inference_loop,
+            args=(data, frames_root, model, folder),
+            daemon=True
+        )
+        inf_thread.start()
+
+    elif folder == "E":
+        # --------------------
+        # FAKE MODE FROM TXT
+        # --------------------
+        txt_path = os.path.join(script_dir, "E_metadata.txt")
+        print(f"\n📂 Starting FAKE replay from: {txt_path}\n")
+
+        inf_thread = threading.Thread(
+            target=fake_inference_loop_from_txt,
+            args=(txt_path, folder),
+            daemon=True
+        )
+        inf_thread.start()
+    else:
+        print("❌ Invalid choice! Use A, B, C, D, or E.")
         raise SystemExit(1)
 
-    mapping_path = os.path.join(dataset_root, folder, "mapping_hardcoded.json")
-    frames_root = os.path.dirname(mapping_path)
-
-    if not os.path.exists(mapping_path):
-        print(f"❌ No mapping_hardcoded.json found for folder {folder}")
-        raise SystemExit(1)
-
-    print(f"\n📂 Loading dataset {folder} ...")
-    with open(mapping_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    print("🧠 Loading model...")
-    model_path = os.path.join(script_dir, "model.pth")
-    if not os.path.exists(model_path):
-        print(f"❌ model.pth not found at: {model_path}")
-        raise SystemExit(1)
-
-    model = RivianModel()
-    model.load_state_dict(torch.load(model_path, map_location="cpu"))
-    model.eval()
-    print("✅ Model loaded!\n")
-
     # --------------------
-    # 2) START INFERENCE THREAD
-    # --------------------
-    inf_thread = threading.Thread(
-        target=inference_loop,
-        args=(data, frames_root, model, folder),
-        daemon=True
-    )
-    inf_thread.start()
-
-    # --------------------
-    # 3) START SERVER
+    # START SERVER
     # --------------------
     print(f"\n🌐 Server running on:")
     print(f"   - http://127.0.0.1:5000")
