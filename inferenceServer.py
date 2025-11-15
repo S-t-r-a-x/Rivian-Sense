@@ -8,6 +8,7 @@ from flask_socketio import SocketIO
 from PIL import Image
 import torch
 from torchvision import transforms
+import cv2  # for slideshow
 
 from train import RivianModel
 
@@ -69,7 +70,7 @@ tf = transforms.Compose([
 def predict_entry(entry, frame_dir, model):
     """
     Predict mood + scene for one frame.
-    `entry["frame"]` should be a relative path inside `frame_dir`.
+    entry["frame"] should be a relative path inside frame_dir.
     """
     img_path = os.path.join(frame_dir, entry["frame"])
     img = Image.open(img_path).convert("RGB")
@@ -91,6 +92,7 @@ def inference_loop(data, frames_root, model, folder_name):
     - iterates over frames
     - does inference
     - applies 10-in-a-row hysteresis for mood & scene
+    - shows a slideshow of frames with mood/scene overlay (OpenCV)
     - sends Socket.IO 'driver_state' event ONLY when stable mood/scene change
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -171,7 +173,33 @@ def inference_loop(data, frames_root, model, folder_name):
             out.flush()
 
             # ============================================================
-            # 3) SEND TO ANDROID ONLY WHEN STABLE STATE CHANGES
+            # 3) SHOW SLIDESHOW FRAME (OpenCV)
+            # ============================================================
+            img_path = os.path.join(frames_root, entry["frame"])
+            frame_bgr = cv2.imread(img_path)
+
+            if frame_bgr is not None:
+                # Optional: overlay mood/scene text
+                overlay_text = f"{mood} / {scene}"
+                cv2.putText(
+                    frame_bgr,
+                    overlay_text,
+                    (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1.0,
+                    (0, 255, 0),
+                    2,
+                    cv2.LINE_AA
+                )
+
+                cv2.imshow("Rivian Sense - Frames", frame_bgr)
+                # waitKey is needed for imshow to update; 1 ms is enough
+                cv2.waitKey(1)
+            else:
+                print(f"⚠️ Could not read image at path: {img_path}")
+
+            # ============================================================
+            # 4) SEND TO ANDROID ONLY WHEN STABLE STATE CHANGES
             # ============================================================
             if global_mood is not None and global_scene is not None:
                 if global_mood != last_sent_mood or global_scene != last_sent_scene:
@@ -190,6 +218,7 @@ def inference_loop(data, frames_root, model, folder_name):
             # Simulate real-time frame rate
             time.sleep(0.33)
 
+    cv2.destroyAllWindows()
     print(f"\n🎉 Finished real-time prediction for {folder_name}! Output saved.\n")
 
 
