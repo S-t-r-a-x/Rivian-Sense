@@ -7,5 +7,6 @@ sealed class Screen(val route: String) {
     object MicroStretch : Screen("micro_stretch")
     object Settings : Screen("settings")
     object TestActions : Screen("test_actions")
+    object Stats : Screen("stats")
 }
 

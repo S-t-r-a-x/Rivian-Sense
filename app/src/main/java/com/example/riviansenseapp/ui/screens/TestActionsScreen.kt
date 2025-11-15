@@ -39,7 +39,9 @@ fun TestActionsScreen(
     onClearAllReminders: () -> Unit = {},
     onPlayChime: () -> Unit = {},
     onShowStreak: () -> Unit = {},
-    onSetContext: (String, String) -> Unit = { _, _ -> }
+    onSetContext: (String, String) -> Unit = { _, _ -> },
+    onResetStats: () -> Unit = {},
+    onPrintStats: () -> Unit = {}
 ) {
     var selectedVolume by remember { mutableStateOf(50) }
     
@@ -152,7 +154,29 @@ fun TestActionsScreen(
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // Stats Testing
+        SectionTitle("📊 Stats Testing")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SmallButton("💾 Print Stats", modifier = Modifier.weight(1f)) {
+                onPrintStats()
+            }
+            SmallButton("🗑️ Reset Stats", modifier = Modifier.weight(1f)) {
+                onResetStats()
+            }
+        }
+        Text(
+            text = "Print: Logcat ispis statistike\nReset: Briše sve statistike i badge-ove",
+            color = Color(0xFF64748B),
+            fontSize = 11.sp,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
         
         // Phone Actions
         SectionTitle("📱 Phone Actions")
