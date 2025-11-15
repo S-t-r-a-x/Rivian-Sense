@@ -9,8 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow // --- NEW IMPORT ---
 import kotlinx.coroutines.flow.asStateFlow // --- NEW IMPORT ---
 import com.example.riviansenseapp.api.DriverContextApi
 import com.example.riviansenseapp.context.*
+import com.example.riviansenseapp.stats.StatsManager
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 class MainViewModel : ViewModel() {
 
@@ -27,6 +31,8 @@ class MainViewModel : ViewModel() {
 
     private var contextApi: DriverContextApi? = null
     private var contextualActionManager: ContextualActionManager? = null
+    private var statsManager: StatsManager? = null
+    private var periodicStatsUpdateJob: Job? = null
 
     // StateFlow za trenutni kontekst
     private val _currentContext = MutableStateFlow(DriverContext(Mood.NEUTRAL, Location.CITY))
@@ -45,9 +51,16 @@ class MainViewModel : ViewModel() {
 
         contextApi = DriverContextApi(context)
         contextualActionManager = ContextualActionManager(context)
+        statsManager = StatsManager(context)
         
         // Učitaj početni kontekst
         refreshContext()
+        
+        // Počni tracking statistike
+        statsManager?.startDriveSession(_currentContext.value)
+        
+        // Pokreni periodični update statistike (na svakih 10 sekundi)
+        startPeriodicStatsUpdate()
         
         // Pokreni WebSocket listener za real-time updates
         startWebSocketListener()
@@ -60,6 +73,9 @@ class MainViewModel : ViewModel() {
         contextApi?.startContextMonitoring { newContext ->
             viewModelScope.launch {
                 _currentContext.value = newContext
+                
+                // Update statistiku
+                statsManager?.updateContext(newContext)
                 
                 android.util.Log.d("MainViewModel", "🔄 Context updated: ${newContext.mood} @ ${newContext.location}")
                 
@@ -74,6 +90,24 @@ class MainViewModel : ViewModel() {
                 
                 // Update smart actions
                 updateSmartActions()
+            }
+        }
+    }
+    
+    /**
+     * Pokreni periodični update statistike na svakih 10 sekundi
+     * Ovo omogućava da se vreme prati i kada se kontekst NE menja
+     */
+    private fun startPeriodicStatsUpdate() {
+        periodicStatsUpdateJob?.cancel()
+        periodicStatsUpdateJob = viewModelScope.launch {
+            while (isActive) {
+                delay(10000) // 10 sekundi
+                
+                // Pozovi updateContext sa trenutnim kontekstom da bi se izračunalo vreme
+                statsManager?.updateContext(_currentContext.value)
+                
+                Log.d("MainViewModel", "🔄 Periodic stats update (10s)")
             }
         }
     }
@@ -122,14 +156,6 @@ class MainViewModel : ViewModel() {
         contextApi?.setMockContext(mood, location)
         refreshContext()
     }
-
-    // --- NEW: Signal Handler Function ---
-    /**
-     * This function is called by MainActivity when a new state
-     * is received from the server.
-     */
-
-    // --- All your existing functions below ---
 
     // Spotify Actions
     fun playSpotify() {
@@ -295,6 +321,19 @@ class MainViewModel : ViewModel() {
     
     override fun onCleared() {
         super.onCleared()
+        
+        // Zaustavi periodični update
+        periodicStatsUpdateJob?.cancel()
+        
+        // Završi drive session i sačuvaj statistiku
+        val driveDuration = statsManager?.endDriveSession() ?: 0L
+        Log.d("MainViewModel", "🏁 Drive session ended: ${driveDuration}s")
+        
         stopWebSocketListener()
     }
+    
+    /**
+     * Vraća StatsManager za pristup statistici i badge-ovima
+     */
+    fun getStatsManager(): StatsManager? = statsManager
 }

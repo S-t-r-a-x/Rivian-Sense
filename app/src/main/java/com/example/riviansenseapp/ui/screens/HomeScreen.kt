@@ -32,7 +32,8 @@ fun HomeScreen(
     onPlaySpotify: () -> Unit = {},
     onStartBreathing: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
-    onOpenTestActions: () -> Unit = {}
+    onOpenTestActions: () -> Unit = {},
+    onOpenStats: () -> Unit = {}
 ) {
     val timeOfDay = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
         in 0..11 -> "Morning"
@@ -70,6 +71,20 @@ fun HomeScreen(
             }
             
             Row {
+                // Stats button
+                IconButton(
+                    onClick = onOpenStats,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = Color(0xFFFFD700) // gold for stats
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Face,
+                        contentDescription = "Statistics & Badges",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                
                 // Test button (temporary)
                 IconButton(
                     onClick = onOpenTestActions,

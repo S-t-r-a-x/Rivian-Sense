@@ -63,7 +63,8 @@ fun RivianNavGraph(
                 onPlaySpotify = { viewModel.playSpotify() },
                 onStartBreathing = { navController.navigate(Screen.Breathing.route) },
                 onOpenSettings = { navController.navigate(Screen.Settings.route) },
-                onOpenTestActions = { navController.navigate(Screen.TestActions.route) }
+                onOpenTestActions = { navController.navigate(Screen.TestActions.route) },
+                onOpenStats = { navController.navigate(Screen.Stats.route) }
             )
         }
         
@@ -149,6 +150,16 @@ fun RivianNavGraph(
                     }
                 }
             )
+        }
+        
+        composable(Screen.Stats.route) {
+            val statsManager = viewModel.getStatsManager()
+            if (statsManager != null) {
+                StatsScreen(
+                    statsManager = statsManager,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
