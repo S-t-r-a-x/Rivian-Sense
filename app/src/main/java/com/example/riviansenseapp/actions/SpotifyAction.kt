@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
+import android.view.KeyEvent
 import android.widget.Toast
 
 class SpotifyAction(private val context: Context) {
@@ -18,46 +19,141 @@ class SpotifyAction(private val context: Context) {
     
     fun playPlaylist(playlistId: String = DEFAULT_PLAYLIST_ID) {
         try {
-            // Pokušaj 1: Koristimo play akciju direktno u URI-ju
-            val playUri = "spotify:playlist:$playlistId:play"
+            // Strategija sa više pokušaja za pouzdano puštanje
+            
+            // Pokušaj 1: Spotify URI sa play action
+            val spotifyUri = "spotify:playlist:$playlistId"
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse(playUri)
+                data = Uri.parse(spotifyUri)
                 setPackage("com.spotify.music")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             
             try {
                 context.startActivity(intent)
-                Toast.makeText(context, "Pokrećem Spotify playlist...", Toast.LENGTH_SHORT).show()
+                
+                // Pošalji broadcast da zapocne playback nakon otvaranja
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    sendSpotifyPlayBroadcast()
+                }, 500) // Čekaj 500ms da se Spotify otvori
+                
+                Toast.makeText(context, "Opening Spotify playlist...", Toast.LENGTH_SHORT).show()
+                
             } catch (e: ActivityNotFoundException) {
-                // Pokušaj 2: Alternativni URI format
-                val alternativeIntent = Intent(Intent.ACTION_VIEW).apply {
-                    data = Uri.parse("https://open.spotify.com/playlist/$playlistId?play=true")
+                // Pokušaj 2: Media player intent
+                val mediaIntent = Intent(Intent.ACTION_VIEW).apply {
+                    data = Uri.parse("https://open.spotify.com/playlist/$playlistId")
                     setPackage("com.spotify.music")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
-                context.startActivity(alternativeIntent)
-                Toast.makeText(context, "Pokrećem Spotify...", Toast.LENGTH_SHORT).show()
+                
+                try {
+                    context.startActivity(mediaIntent)
+                    
+                    // Pošalji play komandu
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        sendSpotifyPlayBroadcast()
+                    }, 800)
+                    
+                    Toast.makeText(context, "Starting Spotify...", Toast.LENGTH_SHORT).show()
+                } catch (e2: Exception) {
+                    // Pokušaj 3: Otvori u browser-u kao poslednji resort
+                    openSpotifyInBrowser(playlistId)
+                }
             }
             
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "Spotify nije instaliran", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Spotify not installed", Toast.LENGTH_LONG).show()
             openSpotifyInBrowser(playlistId)
         } catch (e: Exception) {
-            Toast.makeText(context, "Greška: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    /**
+     * Šalje broadcast intent za play komandu Spotify-u
+     * Koristi više metoda za maksimalnu kompatibilnost
+     */
+    private fun sendSpotifyPlayBroadcast() {
+        try {
+            // Metod 1: Spotify specifični widget broadcast
+            val spotifyIntent = Intent("com.spotify.mobile.android.ui.widget.PLAY").apply {
+                setPackage("com.spotify.music")
+            }
+            context.sendBroadcast(spotifyIntent)
+            
+            // Metod 2: Media button event (univerzalniji pristup)
+            val keyEvent = KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY)
+            val mediaIntent = Intent(Intent.ACTION_MEDIA_BUTTON).apply {
+                putExtra(Intent.EXTRA_KEY_EVENT, keyEvent)
+                setPackage("com.spotify.music")
+            }
+            context.sendBroadcast(mediaIntent)
+            
+            // Metod 3: Audio focus request (ponekad pomaže)
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.requestAudioFocus(
+                null,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
+            
+        } catch (e: Exception) {
+            // Ignoriši greške - ovo su best-effort pokušaji
         }
     }
     
     fun playPodcastOrAudiobook() {
         try {
-            // Otvori Spotify na podcasts sekciju
+            // Lista popularnih podcast-a za vožnju (različiti žanrovi)
+            val podcastShows = listOf(
+                "4rOoJ6Egrf8K2IrywzwOMk", // The Joe Rogan Experience (razgovori)
+                "5CnDmMUG0S5bSSw612fs8C", // Huberman Lab (nauka)
+                "2MAi0BvDc6GTFvKFPXnkCL", // The Daily (vesti NY Times)
+                "4AlxqGkkrqe0mfIx3Mi7Uh", // Serial (true crime)
+                "5AvwZVawapvyhJUIx8oTnX", // Call Her Daddy (lifestyle)
+                "0ofXAdFIQQRsCYj9754UFx"  // TED Talks Daily (edukacija)
+            )
+            
+            // Izaberi random podcast da bude svaki put drugačiji
+            val randomPodcast = podcastShows.random()
+            
+            // Pokušaj 1: Direktan Spotify URI
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("spotify:show:") // Generic podcast intent
+                data = Uri.parse("spotify:show:$randomPodcast")
                 setPackage("com.spotify.music")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
-            context.startActivity(intent)
+            
+            try {
+                context.startActivity(intent)
+                
+                // Pošalji play komandu nakon otvaranja
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    sendSpotifyPlayBroadcast()
+                }, 800)
+                
+                Toast.makeText(context, "Opening podcast on Spotify...", Toast.LENGTH_SHORT).show()
+            } catch (e: ActivityNotFoundException) {
+                // Pokušaj 2: Web link
+                val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                    data = Uri.parse("https://open.spotify.com/show/$randomPodcast")
+                    setPackage("com.spotify.music")
+                }
+                context.startActivity(webIntent)
+                
+                // Pošalji play komandu
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    sendSpotifyPlayBroadcast()
+                }, 1000)
+                
+                Toast.makeText(context, "Opening Spotify...", Toast.LENGTH_SHORT).show()
+            }
+            
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, "Spotify not installed", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "Greška pri otvaranju podcasta", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error opening podcast: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
     

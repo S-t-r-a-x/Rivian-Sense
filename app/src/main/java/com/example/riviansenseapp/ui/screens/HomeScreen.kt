@@ -110,7 +110,7 @@ fun HomeScreen(
                         modifier = Modifier.size(55.dp)
                     )
                 }
-                
+                /*
                 // Test button (temporary)
                 IconButton(
                     onClick = onOpenTestActions,
@@ -124,7 +124,7 @@ fun HomeScreen(
                         modifier = Modifier.size(24.dp)
                     )
                 }
-                
+                */
                 IconButton(
                     onClick = onOpenSettings,
                     colors = IconButtonDefaults.iconButtonColors(
