@@ -1,8 +1,16 @@
 package com.example.riviansenseapp.actions
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.media.MediaPlayer
+import android.os.Build
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.example.riviansenseapp.R
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
@@ -12,6 +20,32 @@ class LoggingAction(private val context: Context) {
     
     private val prefs = context.getSharedPreferences("rivian_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
+    
+    companion object {
+        private const val NOTIFICATION_CHANNEL_ID = "rivian_reminders"
+        private const val NOTIFICATION_CHANNEL_NAME = "Rivian Reminders"
+        private const val NOTIFICATION_ID_BASE = 1000
+    }
+    
+    init {
+        createNotificationChannel()
+    }
+    
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                NOTIFICATION_CHANNEL_NAME,
+                importance
+            ).apply {
+                description = "Notifikacije za podsetke iz Rivian Sense aplikacije"
+            }
+            
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
     
     enum class Mood {
         RELAXED, STRESSED, SURPRISED, AGGRESSIVE, UNCERTAIN, HURRIED, NEUTRAL
@@ -47,21 +81,88 @@ class LoggingAction(private val context: Context) {
                 .putString("reminders", gson.toJson(reminders))
                 .apply()
             
+            // NAPOMENA: Notifikacija se NE prikazuje odmah
+            // Prikaže se automatski kada vozac stane (stop=true)
+            android.util.Log.d("RivianReminders", "💾 Reminder saved: $text (will show on stop=true)")
+            
             Toast.makeText(
                 context,
-                "✅ Reminder kreiran: \"$text\"",
+                "✅ Reminder created: \"$text\"",
                 Toast.LENGTH_SHORT
             ).show()
             true
         } catch (e: Exception) {
-            Toast.makeText(context, "Greška pri kreiranju remindera: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error creating reminder: ${e.message}", Toast.LENGTH_SHORT).show()
             false
         }
     }
     
+    private fun showReminderNotification(reminder: Reminder) {
+        try {
+            // Kreiraj notifikaciju (samo informativna - bez klika)
+            val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification_reminder)
+                .setContentTitle("🔔 Reminder")
+                .setContentText(reminder.text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(reminder.text))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .build()
+            
+            // Prikaži notifikaciju
+            val notificationManager = NotificationManagerCompat.from(context)
+            val notificationId = NOTIFICATION_ID_BASE + reminder.id.hashCode()
+            
+            try {
+                notificationManager.notify(notificationId, notification)
+                android.util.Log.d("RivianReminders", "🔔 Notification shown: ${reminder.text}")
+            } catch (e: SecurityException) {
+                android.util.Log.e("RivianReminders", "❌ Permission denied for notifications: ${e.message}")
+                Toast.makeText(context, "Enable notifications in settings", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("RivianReminders", "❌ Error showing notification: ${e.message}")
+        }
+    }
+    
     fun createMissedCallReminder(callerName: String, phoneNumber: String): Boolean {
-        val text = "Propušten poziv: $callerName ($phoneNumber)"
+        val text = "Missed call: $callerName ($phoneNumber)"
         return createPostDriveReminder(text)
+    }
+    
+    /**
+     * Prikaži sve aktivne podsetke kao notifikacije
+     * Poziva se automatski kada vozac stane (stop=true)
+     * Nakon prikaza, brišu se svi reminders
+     */
+    fun showActiveRemindersNotifications() {
+        android.util.Log.d("RivianReminders", "\n🛑 === STOP DETECTED - CHECKING REMINDERS ===")
+        
+        val activeReminders = getActiveReminders()
+        
+        android.util.Log.d("RivianReminders", "📋 Active reminders count: ${activeReminders.size}")
+        
+        if (activeReminders.isEmpty()) {
+            android.util.Log.d("RivianReminders", "📤 No active reminders to show")
+            return
+        }
+        
+        android.util.Log.d("RivianReminders", "🔔 Showing ${activeReminders.size} active reminders as notifications:")
+        
+        // Prikaži sve reminders kao notifikacije
+        activeReminders.forEachIndexed { index, reminder ->
+            android.util.Log.d("RivianReminders", "  ${index + 1}. ${reminder.text}")
+            showReminderNotification(reminder)
+        }
+        
+        // Obriši sve reminders nakon prikaza
+        android.util.Log.d("RivianReminders", "🗑️ Clearing all reminders from storage...")
+        clearAllReminders()
+        
+        // Proveri da li su obrisani
+        val remainingCount = getReminders().size
+        android.util.Log.d("RivianReminders", "✅ Verification - Remaining reminders: $remainingCount")
+        android.util.Log.d("RivianReminders", "========================================\n")
     }
     
     fun logDriveSummary(
@@ -295,7 +396,7 @@ class LoggingAction(private val context: Context) {
             .apply()
         
         android.util.Log.d("RivianReminders", "🗑️ Svi reminderi ($count) su obrisani")
-        Toast.makeText(context, "🗑️ Obrisano $count remindera", Toast.LENGTH_SHORT).show()
+        // NAPOMENA: Ne prikazujemo Toast jer se ova funkcija poziva automatski u pozadini
     }
     
     data class Reminder(

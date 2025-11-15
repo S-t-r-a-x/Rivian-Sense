@@ -48,13 +48,15 @@ class DriverContextApi(context: Context) {
      */
     fun getCurrentContext(): DriverContext {
         // Za sada čitamo iz SharedPreferences
-        // Kasnije će ovo biti retrofit/ktor API call
+        // Kasnije će ovo biti pravi HTTP request
         val moodString = prefs.getString("current_mood", "NEUTRAL") ?: "NEUTRAL"
         val locationString = prefs.getString("current_location", "CITY") ?: "CITY"
+        val stopValue = prefs.getBoolean("current_stop", false)
         
         return DriverContext(
             mood = Mood.valueOf(moodString),
             location = Location.valueOf(locationString),
+            stop = stopValue,
             timestamp = System.currentTimeMillis()
         )
     }
@@ -63,10 +65,11 @@ class DriverContextApi(context: Context) {
      * Mock funkcija za setovanje konteksta (za testiranje)
      * U produkciji ovo neće biti potrebno jer će API vršiti analizu
      */
-    fun setMockContext(mood: Mood, location: Location) {
+    fun setMockContext(mood: Mood, location: Location, stop: Boolean = false) {
         prefs.edit()
             .putString("current_mood", mood.name)
             .putString("current_location", location.name)
+            .putBoolean("current_stop", stop)
             .putLong("context_timestamp", System.currentTimeMillis())
             .apply()
     }
@@ -137,49 +140,56 @@ class DriverContextApi(context: Context) {
             socket?.on("driver_state") { args ->
                 try {
                     val data = args[0] as JSONObject
-                    val state = data.getString("state").lowercase()
+                    val moodString = data.getString("mood").lowercase()
                     
-                    // Opcionalno primanje location sa servera
-                    val locationString = if (data.has("location")) {
-                        data.getString("location").lowercase()
+                    // Opcionalno primanje scene sa servera
+                    val sceneString = if (data.has("scene")) {
+                        data.getString("scene").lowercase()
                     } else {
                         null
                     }
                     
-                    Log.d(TAG, "📩 Received driver_state: mood=$state, location=$locationString")
+                    // Primanje stop parametra (da li smo stali)
+                    val stop = if (data.has("stop")) {
+                        data.getBoolean("stop")
+                    } else {
+                        false  // Default: nismo stali
+                    }
                     
-                    // Mapiranje state -> Mood
-                    val mood = when (state) {
+                    Log.d(TAG, "📩 Received driver_state: mood=$moodString, scene=$sceneString, stop=$stop")
+                    
+                    // Mapiranje mood -> Mood
+                    val mood = when (moodString) {
                         "nervous", "stressed", "anxious" -> Mood.NERVOUS
                         "tired", "sleepy", "exhausted" -> Mood.TIRED
-                        "neutral", "calm", "normal" -> Mood.NEUTRAL
+                        "relaxed", "focused", "normal" -> Mood.NEUTRAL
                         else -> {
-                            Log.w(TAG, "Unknown state: $state, defaulting to NEUTRAL")
+                            Log.w(TAG, "Unknown mood: $moodString, defaulting to NEUTRAL")
                             Mood.NEUTRAL
                         }
                     }
                     
-                    // Mapiranje location (ili zadrži postojeću)
-                    val location = if (locationString != null) {
-                        when (locationString) {
+                    // Mapiranje scene (ili zadrži postojeću)
+                    val location = if (sceneString != null) {
+                        when (sceneString) {
                             "city", "urban" -> Location.CITY
                             "highway", "freeway", "motorway" -> Location.HIGHWAY
                             "forest", "nature", "woods" -> Location.FOREST
                             "garage", "parking", "home" -> Location.GARAGE
                             else -> {
-                                Log.w(TAG, "Unknown location: $locationString, keeping current")
+                                Log.w(TAG, "Unknown scene: $sceneString, keeping current")
                                 getCurrentContext().location
                             }
                         }
                     } else {
-                        // Ako server nije poslao location, zadrži postojeću
+                        // Ako server nije poslao scene, zadrži postojeću
                         getCurrentContext().location
                     }
                     
-                    val newContext = DriverContext(mood, location)
+                    val newContext = DriverContext(mood, location, stop)
                     
                     // Sačuvaj u SharedPreferences
-                    setMockContext(mood, location)
+                    setMockContext(mood, location, stop)
                     saveContextToHistory(newContext)
                     
                     // Pozovi callback

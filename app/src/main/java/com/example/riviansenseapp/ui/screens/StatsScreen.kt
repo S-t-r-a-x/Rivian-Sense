@@ -89,13 +89,13 @@ fun StatsContent(stats: DriveStats) {
         // Opšta statistika
         item {
             StatsCard(
-                title = "Opšta Statistika",
+                title = "General Statistics",
                 icon = "📈"
             ) {
-                StatRow("Ukupno vožnji", "${stats.totalDrives}")
-                StatRow("Ukupno vreme", stats.formatTime(stats.totalDriveTime))
+                StatRow("Total Drives", "${stats.totalDrives}")
+                StatRow("Total Time", stats.formatTime(stats.totalDriveTime))
                 StatRow(
-                    "Prosečna vožnja", 
+                    "Average Drive", 
                     if (stats.totalDrives > 0) 
                         stats.formatTime(stats.totalDriveTime / stats.totalDrives) 
                     else "N/A"
@@ -106,7 +106,7 @@ fun StatsContent(stats: DriveStats) {
         // Mood statistika
         item {
             StatsCard(
-                title = "Raspoloženje",
+                title = "Mood",
                 icon = "😊"
             ) {
                 MoodStatRow(
@@ -136,7 +136,7 @@ fun StatsContent(stats: DriveStats) {
         // Location statistika
         item {
             StatsCard(
-                title = "Lokacije",
+                title = "Locations",
                 icon = "🗺️"
             ) {
                 LocationStatRow(
