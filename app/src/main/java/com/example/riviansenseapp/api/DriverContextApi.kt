@@ -30,7 +30,7 @@ class DriverContextApi(context: Context) {
     companion object {
         private const val TAG = "DriverContextApi"
         // Za Android Emulator koristi (TESTIRANJE):
-        private const val SERVER_URL = "http://192.168.0.242:5000"
+        private const val SERVER_URL = "http://192.168.40.152:5000"
         
         // Za pravi device koristi (nakon što emulator radi):
         // private const val SERVER_URL = "http://192.168.0.73:5000"

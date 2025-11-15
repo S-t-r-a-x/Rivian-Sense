@@ -1,6 +1,7 @@
 package com.example.riviansenseapp.navigation
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -19,6 +20,9 @@ fun RivianNavGraph(
 ) {
     val context = LocalContext.current
     var features by remember { mutableStateOf(getDefaultFeatures()) }
+    
+    // State za trigger refresh nakon promene Settings-a
+    var refreshTrigger by remember { mutableIntStateOf(0) }
     
     // Observe context and smart actions
     val currentContext by viewModel.currentContext.collectAsState()
@@ -53,6 +57,7 @@ fun RivianNavGraph(
                     com.example.riviansenseapp.context.Location.GARAGE -> "Garage"
                 },
                 smartActions = smartActions,
+                refreshTrigger = refreshTrigger,
                 onSmartActionClick = { actionType ->
                     when(actionType) {
                         ActionType.BREATHING -> navController.navigate(Screen.Breathing.route)
@@ -86,17 +91,11 @@ fun RivianNavGraph(
         
         composable(Screen.Settings.route) {
             SettingsScreen(
-                features = features,
-                onToggleFeature = { id ->
-                    features = features.map { feature ->
-                        if (feature.id == id) {
-                            feature.copy(enabled = !feature.enabled)
-                        } else {
-                            feature
-                        }
-                    }
-                },
                 onBack = {
+                    // Inkrementiraj refreshTrigger da se HomeScreen recompose-uje
+                    refreshTrigger++
+                    // Osveži smart actions u ViewModelu
+                    viewModel.refreshSmartActions()
                     navController.popBackStack()
                 }
             )

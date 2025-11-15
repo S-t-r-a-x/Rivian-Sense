@@ -148,6 +148,15 @@ class MainViewModel : ViewModel() {
             _smartActions.value = actions
         }
     }
+    
+    /**
+     * Javna funkcija za osvežavanje smart actions
+     * Poziva se kada se vrati sa Settings ekrana
+     */
+    fun refreshSmartActions() {
+        Log.d("MainViewModel", "🔄 Refreshing smart actions after Settings change...")
+        updateSmartActions()
+    }
 
     /**
      * Mock funkcija za postavljanje konteksta (za testiranje)

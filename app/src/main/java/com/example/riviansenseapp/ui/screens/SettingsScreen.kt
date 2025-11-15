@@ -1,6 +1,7 @@
 package com.example.riviansenseapp.ui.screens
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -70,7 +71,12 @@ fun SettingsScreen(
 
     // Load features with enabled state from SharedPreferences
     var features by remember {
-        mutableStateOf(loadFeaturesWithPrefs(context))
+        val loaded = loadFeaturesWithPrefs(context)
+        Log.d("SettingsScreen", "📥 Loaded ${loaded.size} features from SharedPreferences")
+        loaded.forEachIndexed { index, feature ->
+            Log.d("SettingsScreen", "  ${index + 1}. ${feature.name} [${feature.id.name}] = ${if (feature.enabled) "✅ ENABLED" else "❌ DISABLED"}")
+        }
+        mutableStateOf(loaded)
     }
 
     Column(
@@ -83,8 +89,10 @@ fun SettingsScreen(
         // Back button
         TextButton(
             onClick = {
+                Log.d("SettingsScreen", "\n🔙 BACK button clicked - saving preferences...")
                 // Save enabled features when leaving Settings
                 saveEnabledFeatures(context, features)
+                Log.d("SettingsScreen", "💾 Preferences saved, calling onBack()")
                 onBack()
             },
             colors = ButtonDefaults.textButtonColors(
@@ -145,6 +153,7 @@ fun SettingsScreen(
                 FeatureCard(
                     feature = feature,
                     onToggle = { checked ->
+                        Log.d("SettingsScreen", "🔄 Toggle: ${feature.name} [${feature.id.name}] -> ${if (checked) "✅ ENABLED" else "❌ DISABLED"}")
                         features = features.map {
                             if (it.id == feature.id) it.copy(enabled = checked) else it
                         }
@@ -413,10 +422,20 @@ private fun saveEnabledFeatures(context: Context, features: List<Feature>) {
         .map { it.id.name }
         .toSet()
 
+    Log.d("SettingsScreen", "\n💾 === SAVING ENABLED FEATURES ===")
+    Log.d("SettingsScreen", "📍 SharedPreferences: $PREFS_NAME")
+    Log.d("SettingsScreen", "🔑 Key: $KEY_ENABLED_FEATURES")
+    Log.d("SettingsScreen", "📊 Total features: ${features.size}")
+    Log.d("SettingsScreen", "✅ Enabled features: ${enabledIds.size}")
+    enabledIds.forEach { Log.d("SettingsScreen", "  ✓ $it") }
+    Log.d("SettingsScreen", "================================\n")
+
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         .edit()
         .putStringSet(KEY_ENABLED_FEATURES, enabledIds)
         .apply()
+    
+    Log.d("SettingsScreen", "✅ SharedPreferences.apply() completed")
 }
 
 @Preview(showBackground = true)

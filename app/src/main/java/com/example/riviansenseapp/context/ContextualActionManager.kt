@@ -1,14 +1,58 @@
 package com.example.riviansenseapp.context
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 
 /**
  * Manager za kontekstualne akcije baziran na mood i location
  */
 class ContextualActionManager(private val context: Context) {
+    
+    private val prefs: SharedPreferences = context.getSharedPreferences("rivian_prefs", Context.MODE_PRIVATE)
+    
+    /**
+     * Mapira ActionType na AppFeature iz Settings-a
+     */
+    private fun getFeatureForAction(actionType: ActionType): String? {
+        return when (actionType) {
+            ActionType.SPOTIFY_CALM -> "PLAY_CALM_MUSIC"
+            ActionType.SPOTIFY_ENERGETIC -> "PLAY_ENERGETIC_MUSIC"
+            ActionType.SPOTIFY_PODCAST -> "PLAY_PODCAST_OR_AUDIOBOOK"
+            ActionType.DND_ENABLE, ActionType.DND_DISABLE -> "ENABLE_DND"
+            ActionType.NAV_HOME, ActionType.NAV_REST_STOP, ActionType.NAV_COFFEE -> "SMART_NAVIGATION"
+            ActionType.BREATHING -> "START_BREATHING_EXERCISE"
+            ActionType.STRETCH -> "SHOW_MICRO_STRETCH_PROMPT"
+            ActionType.LOG_DRIVE -> "LOG_DRIVE_SUMMARY"
+            ActionType.CREATE_REMINDER -> "CREATE_POST_DRIVE_REMINDER"
+        }
+    }
+    
+    /**
+     * Proverava da li je data akcija omogućena u Settings-u
+     */
+    private fun isActionEnabled(actionType: ActionType): Boolean {
+        val featureName = getFeatureForAction(actionType) ?: return true
+        val enabledFeatures = prefs.getStringSet("enabled_features", null)
+        
+        Log.d("ActionFilter", "🔍 Checking action: $actionType -> feature: $featureName")
+        Log.d("ActionFilter", "📋 Enabled features: $enabledFeatures")
+        
+        // Ako nisu postavljene preference, sve je omogućeno (default)
+        if (enabledFeatures == null) {
+            Log.d("ActionFilter", "⚠️ No preferences saved - allowing all (default)")
+            return true
+        }
+        
+        val isEnabled = enabledFeatures.contains(featureName)
+        Log.d("ActionFilter", "${if (isEnabled) "✅" else "❌"} Action $actionType is ${if (isEnabled) "ENABLED" else "DISABLED"}")
+        
+        return isEnabled
+    }
 
     /**
      * Vraća listu preporučenih akcija na osnovu trenutnog konteksta
+     * Filtrira akcije na osnovu Settings preference
      */
     fun getSmartActions(driverContext: DriverContext): List<SmartAction> {
         val actions = mutableListOf<SmartAction>()
@@ -25,7 +69,18 @@ class ContextualActionManager(private val context: Context) {
             }
         }
         
-        return actions.sortedBy { it.priority }
+        // ✅ FILTER: Ukloni akcije koje nisu omogućene u Settings-u
+        Log.d("ActionFilter", "\n🎯 === FILTERING SMART ACTIONS ===")
+        Log.d("ActionFilter", "📊 Total actions before filter: ${actions.size}")
+        actions.forEach { Log.d("ActionFilter", "  - ${it.title} (${it.action})") }
+        
+        val filteredActions = actions.filter { isActionEnabled(it.action) }
+        
+        Log.d("ActionFilter", "\n✅ Actions after filter: ${filteredActions.size}")
+        filteredActions.forEach { Log.d("ActionFilter", "  ✓ ${it.title} (${it.action})") }
+        Log.d("ActionFilter", "==========================\n")
+        
+        return filteredActions.sortedBy { it.priority }
     }
     
     private fun getNervousActions(location: Location): List<SmartAction> {

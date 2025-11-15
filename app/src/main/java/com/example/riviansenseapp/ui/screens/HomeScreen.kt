@@ -1,5 +1,6 @@
 package com.example.riviansenseapp.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,8 +11,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -22,12 +25,43 @@ import com.example.riviansenseapp.ui.screens.cards.ActionCard
 import com.example.riviansenseapp.ui.theme.RivianSenseAppTheme
 import java.util.*
 
+/**
+ * Pomocna funkcija za proveru da li je feature omogućen u Settings-u
+ * Reaktivna - prati promene u SharedPreferences
+ */
+@Composable
+fun isFeatureEnabled(featureName: String, refreshTrigger: Int = 0): Boolean {
+    val context = LocalContext.current
+    
+    // remember sa ključem refreshTrigger - recompose se kada se promeni
+    val isEnabled = remember(featureName, refreshTrigger) {
+        val prefs = context.getSharedPreferences("rivian_prefs", android.content.Context.MODE_PRIVATE)
+        val enabledFeatures = prefs.getStringSet("enabled_features", null)
+        
+        Log.d("HomeScreen", "🔍 Checking feature: $featureName (refresh=$refreshTrigger)")
+        Log.d("HomeScreen", "📋 Enabled features from prefs: $enabledFeatures")
+        
+        // Ako nisu postavljene preference, sve je omogućeno (default)
+        if (enabledFeatures == null) {
+            Log.d("HomeScreen", "⚠️ No preferences - allowing $featureName (default)")
+            true
+        } else {
+            val result = enabledFeatures.contains(featureName)
+            Log.d("HomeScreen", "${if (result) "✅" else "❌"} Feature $featureName is ${if (result) "ENABLED" else "DISABLED"}")
+            result
+        }
+    }
+    
+    return isEnabled
+}
+
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     currentMood: String = "Neutral",
     currentLocation: String = "City",
     smartActions: List<com.example.riviansenseapp.context.SmartAction> = emptyList(),
+    refreshTrigger: Int = 0,
     onSmartActionClick: (com.example.riviansenseapp.context.ActionType) -> Unit = {},
     onPlaySpotify: () -> Unit = {},
     onStartBreathing: () -> Unit = {},
@@ -279,39 +313,50 @@ fun HomeScreen(
         
         // Smart action cards - dynamic based on context
         if (smartActions.isEmpty()) {
-            // Fallback when no smart actions
+            Log.d("HomeScreen", "\n🎯 Smart actions are empty - showing FALLBACK actions")
+            // Fallback when no smart actions - ✅ FILTRIRAMO NA OSNOVU SETTINGS-A
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                ActionCard(
-                    icon = Icons.Default.PlayArrow,
-                    iconTint = Color(0xFF34D399),
-                    title = "Play Music",
-                    description = "Start your playlist",
-                    actionText = "Play on Spotify",
-                    onAction = onPlaySpotify,
-                    gradientColors = listOf(
-                        Color(0xFF064E3B),
-                        Color(0xFF0F172A)
-                    ),
-                    borderColor = Color(0xFF14532D)
-                )
+                // Music action - samo ako je omogućeno
+                if (isFeatureEnabled("PLAY_CALM_MUSIC", refreshTrigger) || isFeatureEnabled("PLAY_ENERGETIC_MUSIC", refreshTrigger)) {
+                    ActionCard(
+                        icon = Icons.Default.PlayArrow,
+                        iconTint = Color(0xFF34D399),
+                        title = "Play Music",
+                        description = "Start your playlist",
+                        actionText = "Play on Spotify",
+                        onAction = onPlaySpotify,
+                        gradientColors = listOf(
+                            Color(0xFF064E3B),
+                            Color(0xFF0F172A)
+                        ),
+                        borderColor = Color(0xFF14532D)
+                    )
+                }
 
-                ActionCard(
-                    icon = Icons.Default.FavoriteBorder,
-                    iconTint = Color(0xFF60A5FA),
-                    title = "Breathing Exercise",
-                    description = "60-second box breathing",
-                    actionText = "Start Exercise",
-                    onAction = onStartBreathing,
-                    gradientColors = listOf(
-                        Color(0xFF172554),
-                        Color(0xFF0F172A)
-                    ),
-                    borderColor = Color(0xFF1E3A8A)
-                )
+                // Breathing exercise - samo ako je omogućeno
+                if (isFeatureEnabled("START_BREATHING_EXERCISE", refreshTrigger)) {
+                    ActionCard(
+                        icon = Icons.Default.FavoriteBorder,
+                        iconTint = Color(0xFF60A5FA),
+                        title = "Breathing Exercise",
+                        description = "60-second box breathing",
+                        actionText = "Start Exercise",
+                        onAction = onStartBreathing,
+                        gradientColors = listOf(
+                            Color(0xFF172554),
+                            Color(0xFF0F172A)
+                        ),
+                        borderColor = Color(0xFF1E3A8A)
+                    )
+                }
             }
         } else {
+            Log.d("HomeScreen", "\n✅ Showing ${smartActions.size} SMART ACTIONS:")
+            smartActions.forEach { action ->
+                Log.d("HomeScreen", "  ✓ ${action.title} (${action.action})")
+            }
             // Smart actions from context
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
