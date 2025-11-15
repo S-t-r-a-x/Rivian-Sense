@@ -102,17 +102,7 @@ fun SmartActionCard(
                 }
             }
             
-            // Right side - priority indicator
-            if (smartAction.priority == 1) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(
-                            Color(0xFFEF4444), // red for highest priority
-                            RoundedCornerShape(4.dp)
-                        )
-                )
-            }
+
         }
     }
 }

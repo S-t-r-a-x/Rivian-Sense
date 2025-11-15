@@ -26,8 +26,7 @@ import kotlinx.coroutines.delay
 enum class BreathingPhase(val duration: Int, val text: String, val colors: List<Color>) {
     INHALE(4, "Breathe In", listOf(Color(0xFF06B6D4), Color(0xFF3B82F6))),
     HOLD1(4, "Hold", listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6))),
-    EXHALE(4, "Breathe Out", listOf(Color(0xFF8B5CF6), Color(0xFFEC4899))),
-    HOLD2(4, "Hold", listOf(Color(0xFFEC4899), Color(0xFF06B6D4)))
+    EXHALE(4, "Breathe Out", listOf(Color(0xFF8B5CF6), Color(0xFFEC4899)))
 }
 
 @Composable
@@ -38,32 +37,34 @@ fun BreathingScreen(
     var secondsRemaining by remember { mutableStateOf(60) }
     var cycleCount by remember { mutableStateOf(0) }
     
-    val targetScale = when (phase) {
-        BreathingPhase.INHALE -> 1.5f
-        BreathingPhase.EXHALE -> 0.75f
-        else -> 1.1f
-    }
-    
-    val animatedScale by animateFloatAsState(
-        targetValue = targetScale,
-        animationSpec = tween(
-            durationMillis = phase.duration * 1000,
-            easing = LinearEasing
+    // Animirani scale koji prati trenutnu fazu
+    val infiniteTransition = rememberInfiniteTransition(label = "breathing")
+    val animatedScale by infiniteTransition.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 12000 // 3 faze × 4 sekunde
+                0.6f at 0 with CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)    // Start mala veličina
+                1.8f at 4000 with CubicBezierEasing(0.4f, 0.0f, 0.6f, 1.0f) // INHALE: smooth povećavanje
+                1.8f at 8000 with LinearEasing                               // HOLD1: miruje
+                0.6f at 12000 with CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f) // EXHALE: smooth smanjivanje
+            },
+            repeatMode = RepeatMode.Restart
         ),
         label = "scale"
     )
     
-    // Timer for phase changes
-    LaunchedEffect(phase) {
-        delay(phase.duration * 1000L)
-        phase = when (phase) {
-            BreathingPhase.INHALE -> BreathingPhase.HOLD1
-            BreathingPhase.HOLD1 -> BreathingPhase.EXHALE
-            BreathingPhase.EXHALE -> BreathingPhase.HOLD2
-            BreathingPhase.HOLD2 -> {
-                cycleCount++
-                BreathingPhase.INHALE
-            }
+    // Timer za praćenje faza (za prikaz teksta)
+    LaunchedEffect(Unit) {
+        while (true) {
+            phase = BreathingPhase.INHALE
+            delay(4000)
+            phase = BreathingPhase.HOLD1
+            delay(4000)
+            phase = BreathingPhase.EXHALE
+            delay(4000)
+            cycleCount++
         }
     }
     
@@ -102,36 +103,63 @@ fun BreathingScreen(
         ) {
             // Breathing Circle
             Box(
-                modifier = Modifier.size(256.dp),
+                modifier = Modifier.size(300.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Blurred background circle
+                // Outer glow ring
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .size(300.dp)
                         .scale(animatedScale)
                         .background(
-                            brush = Brush.linearGradient(phase.colors),
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    phase.colors[0].copy(alpha = 0.4f),
+                                    phase.colors[1].copy(alpha = 0.1f),
+                                    Color.Transparent
+                                )
+                            ),
                             shape = CircleShape
                         )
-                        .blur(64.dp)
                 )
                 
-                // Main circle
+                // Middle glow
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .size(220.dp)
                         .scale(animatedScale)
                         .background(
-                            brush = Brush.linearGradient(phase.colors),
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    phase.colors[0].copy(alpha = 0.6f),
+                                    phase.colors[1].copy(alpha = 0.3f),
+                                    Color.Transparent
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+                
+                // Main circle with gradient
+                Box(
+                    modifier = Modifier
+                        .size(180.dp)
+                        .scale(animatedScale)
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    phase.colors[0],
+                                    phase.colors[1]
+                                )
+                            ),
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = phase.text,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = Color.White
                     )
                 }

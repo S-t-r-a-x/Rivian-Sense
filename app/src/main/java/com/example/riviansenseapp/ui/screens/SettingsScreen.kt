@@ -83,42 +83,41 @@ fun SettingsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFF020617)) // slate-950
-            .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Back button
-        TextButton(
-            onClick = {
-                Log.d("SettingsScreen", "\n🔙 BACK button clicked - saving preferences...")
-                // Save enabled features when leaving Settings
-                saveEnabledFeatures(context, features)
-                Log.d("SettingsScreen", "💾 Preferences saved, calling onBack()")
-                onBack()
-            },
-            colors = ButtonDefaults.textButtonColors(
-                contentColor = Color(0xFF94A3B8)
-            ),
-            modifier = Modifier.padding(bottom = 16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Back")
-        }
-
-        // Header
+        // Back button with better spacing
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 24.dp, top = 48.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(
+                onClick = {
+                    Log.d("SettingsScreen", "\n🔙 BACK button clicked - saving preferences...")
+                    saveEnabledFeatures(context, features)
+                    Log.d("SettingsScreen", "💾 Preferences saved, calling onBack()")
+                    onBack()
+                },
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = Color(0xFF94A3B8)
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            // Header inline with back button
             Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = null,
-                tint = Color(0xFF22D3EE), // cyan-400
-                modifier = Modifier.size(32.dp)
+                tint = Color(0xFF22D3EE),
+                modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
@@ -128,12 +127,13 @@ fun SettingsScreen(
                 color = Color.White
             )
         }
-
+        
+        // Description
         Text(
             text = "Customize your Rivian Sense experience",
             fontSize = 14.sp,
             color = Color(0xFF94A3B8),
-            modifier = Modifier.padding(bottom = 24.dp)
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
         )
 
         // Features List
@@ -142,13 +142,14 @@ fun SettingsScreen(
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = Color.White,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 16.dp)
         )
 
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(bottom = 24.dp)
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
         ) {
+
             features.forEach { feature ->
                 FeatureCard(
                     feature = feature,
@@ -166,6 +167,7 @@ fun SettingsScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 24.dp)
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
@@ -246,26 +248,8 @@ fun FeatureCard(
                 Text(
                     text = feature.description,
                     fontSize = 14.sp,
-                    color = Color(0xFF94A3B8),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    color = Color(0xFF94A3B8)
                 )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = feature.action,
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace,
-                        color = Color(0xFF22D3EE),
-                        modifier = Modifier
-                            .background(
-                                Color(0xFF164E63).copy(alpha = 0.3f),
-                                RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
             }
         }
     }

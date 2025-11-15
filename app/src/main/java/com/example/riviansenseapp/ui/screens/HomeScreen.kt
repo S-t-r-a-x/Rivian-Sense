@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,30 +80,21 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFF020617)) // slate-950
-            .padding(24.dp)
+            .padding(start = 24.dp, end = 24.dp, top = 48.dp, bottom = 14.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // Header with Settings
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Good $timeOfDay",
-                    fontSize = 14.sp,
-                    color = Color(0xFF94A3B8), // slate-400
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                
-                Text(
-                    text = "Ready to Drive",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
+            Text(
+                text = "Ready to Drive",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
             
             Row {
                 // Stats button
@@ -113,9 +105,9 @@ fun HomeScreen(
                     )
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Face,
+                        painter = painterResource(id = com.example.riviansenseapp.R.drawable.badge_foreground),
                         contentDescription = "Statistics & Badges",
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(55.dp)
                     )
                 }
                 
@@ -148,7 +140,7 @@ fun HomeScreen(
             }
         }
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         
         // Location & Scenery Card
         Box(
@@ -176,6 +168,13 @@ fun HomeScreen(
                     verticalAlignment = Alignment.Top,
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
+                    val sceneEmoji = when(currentLocation.lowercase()) {
+                        "highway" -> "🛣️"
+                        "city" -> "🏙️"
+                        "forest" -> "🌳"
+                        "parking" -> "🅿️"
+                        else -> "📍" // default location
+                    }
                     Box(
                         modifier = Modifier
                             .size(48.dp)
@@ -185,11 +184,9 @@ fun HomeScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = Color(0xFF34D399), // emerald-400
-                            modifier = Modifier.size(24.dp)
+                        Text(
+                            text = sceneEmoji,
+                            fontSize = 28.sp
                         )
                     }
                     
@@ -214,6 +211,11 @@ fun HomeScreen(
                 Row(
                     verticalAlignment = Alignment.Top
                 ) {
+                    val moodEmoji = when(currentMood.lowercase()) {
+                        "nervous" -> "😰"
+                        "tired" -> "😴"
+                        else -> "😌" // neutral or unknown
+                    }
                     Box(
                         modifier = Modifier
                             .size(48.dp)
@@ -223,11 +225,9 @@ fun HomeScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Face,
-                            contentDescription = null,
-                            tint = Color(0xFFA78BFA), // purple-400
-                            modifier = Modifier.size(24.dp)
+                        Text(
+                            text = moodEmoji,
+                            fontSize = 28.sp
                         )
                     }
                     
@@ -266,7 +266,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Suggested Actions",
-                fontSize = 16.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.White
             )
@@ -326,74 +326,6 @@ fun HomeScreen(
                     com.example.riviansenseapp.ui.screens.cards.SmartActionCard(
                         smartAction = smartAction,
                         onClick = { onSmartActionClick(smartAction.action) }
-                    )
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Quick Stats
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        Color(0xFF0F172A).copy(alpha = 0.5f),
-                        RoundedCornerShape(12.dp)
-                    )
-                    .border(
-                        1.dp,
-                        Color(0xFF1E293B),
-                        RoundedCornerShape(12.dp)
-                    )
-                    .padding(16.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "Battery",
-                        fontSize = 12.sp,
-                        color = Color(0xFF94A3B8),
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                    Text(
-                        text = "87%",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-            }
-            
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        Color(0xFF0F172A).copy(alpha = 0.5f),
-                        RoundedCornerShape(12.dp)
-                    )
-                    .border(
-                        1.dp,
-                        Color(0xFF1E293B),
-                        RoundedCornerShape(12.dp)
-                    )
-                    .padding(16.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "Range",
-                        fontSize = 12.sp,
-                        color = Color(0xFF94A3B8),
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                    Text(
-                        text = "245 mi",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
                     )
                 }
             }

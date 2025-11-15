@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
@@ -23,7 +24,6 @@ import com.example.riviansenseapp.context.Location
 import com.example.riviansenseapp.context.Mood
 import com.example.riviansenseapp.stats.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
     statsManager: StatsManager,
@@ -34,47 +34,79 @@ fun StatsScreen(
     
     var selectedTab by remember { mutableStateOf(0) }
     
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Statistika & Bedževi") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.Star, "Nazad")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            )
-        }
-    ) { paddingValues ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF020617)) // slate-950
+    ) {
+        // Header with back button
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 24.dp, top = 48.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Tabs
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text("📊 Statistika") },
-                    icon = { Icon(Icons.Default.DateRange, null) }
+            IconButton(
+                onClick = onNavigateBack,
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = Color(0xFF94A3B8)
                 )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text("🏆 Bedževi") },
-                    icon = { Icon(Icons.Default.Star, null) }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    modifier = Modifier.size(24.dp)
                 )
             }
             
-            // Content
-            when (selectedTab) {
-                0 -> StatsContent(stats)
-                1 -> BadgesContent(allBadges, statsManager)
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            Text(
+                text = "Statistics & Badges",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+        
+        // Custom tabs
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Stats tab
+            Button(
+                onClick = { selectedTab = 0 },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedTab == 0) Color(0xFF06B6D4) else Color(0xFF1E293B),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("📊 Stats")
             }
+            
+            // Badges tab
+            Button(
+                onClick = { selectedTab = 1 },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedTab == 1) Color(0xFFFFD700) else Color(0xFF1E293B),
+                    contentColor = if (selectedTab == 1) Color(0xFF020617) else Color.White
+                ),
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("🏆 Badges")
+            }
+        }
+        
+        // Content
+        when (selectedTab) {
+            0 -> StatsContent(stats)
+            1 -> BadgesContent(allBadges, statsManager)
         }
     }
 }
@@ -83,7 +115,7 @@ fun StatsScreen(
 fun StatsContent(stats: DriveStats) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Opšta statistika
@@ -179,7 +211,7 @@ fun BadgesContent(badges: List<Badge>, statsManager: StatsManager) {
     
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Header
@@ -194,9 +226,10 @@ fun BadgesContent(badges: List<Badge>, statsManager: StatsManager) {
         if (unlockedBadges.isNotEmpty()) {
             item {
                 Text(
-                    text = "🏆 Otključano (${unlockedBadges.size})",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = "🏆 Unlocked (${unlockedBadges.size})",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
@@ -214,9 +247,11 @@ fun BadgesContent(badges: List<Badge>, statsManager: StatsManager) {
         if (lockedBadges.isNotEmpty()) {
             item {
                 Text(
-                    text = "🔒 Zaključano (${lockedBadges.size})",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = "🔒 Locked (${lockedBadges.size})",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
+                    color = Color(0xFF94A3B8),
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
             
@@ -237,28 +272,30 @@ fun StatsCard(
     icon: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = Color(0xFF0F172A).copy(alpha = 0.6f),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(20.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier = Modifier.padding(bottom = 16.dp)
             ) {
                 Text(
                     text = icon,
-                    fontSize = 24.sp,
-                    modifier = Modifier.padding(end = 8.dp)
+                    fontSize = 28.sp,
+                    modifier = Modifier.padding(end = 12.dp)
                 )
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
             }
             
@@ -272,14 +309,19 @@ fun StatRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = label,
+            fontSize = 15.sp,
+            color = Color(0xFF94A3B8)
+        )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
     }
 }
@@ -299,19 +341,24 @@ fun MoodStatRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = emoji, fontSize = 20.sp, modifier = Modifier.padding(end = 8.dp))
-                Text(text = mood.name, style = MaterialTheme.typography.bodyMedium)
+                Text(text = emoji, fontSize = 24.sp, modifier = Modifier.padding(end = 8.dp))
+                Text(
+                    text = mood.name,
+                    fontSize = 15.sp,
+                    color = Color.White
+                )
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = stats.formatTime(time),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
                     text = String.format("%.1f%%", percentage),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    fontSize = 13.sp,
+                    color = Color(0xFF94A3B8)
                 )
             }
         }
@@ -347,19 +394,24 @@ fun LocationStatRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = emoji, fontSize = 20.sp, modifier = Modifier.padding(end = 8.dp))
-                Text(text = location.name, style = MaterialTheme.typography.bodyMedium)
+                Text(text = emoji, fontSize = 24.sp, modifier = Modifier.padding(end = 8.dp))
+                Text(
+                    text = location.name,
+                    fontSize = 15.sp,
+                    color = Color.White
+                )
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = stats.formatTime(time),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
                     text = String.format("%.1f%%", percentage),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    fontSize = 13.sp,
+                    color = Color(0xFF94A3B8)
                 )
             }
         }
@@ -378,55 +430,60 @@ fun LocationStatRow(
 
 @Composable
 fun BadgesSummaryCard(total: Int, unlocked: Int) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = Color(0xFF0F172A).copy(alpha = 0.6f),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(20.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "🏆",
-                    fontSize = 32.sp
+                    fontSize = 40.sp
                 )
                 Text(
                     text = "$unlocked",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
-                    text = "Otključano",
-                    style = MaterialTheme.typography.bodySmall
+                    text = "Unlocked",
+                    fontSize = 14.sp,
+                    color = Color(0xFF94A3B8)
                 )
             }
             
-            Divider(
+            Box(
                 modifier = Modifier
                     .width(2.dp)
-                    .height(60.dp),
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f)
+                    .height(60.dp)
+                    .background(Color(0xFF475569))
             )
             
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "🔒",
-                    fontSize = 32.sp
+                    fontSize = 40.sp
                 )
                 Text(
                     text = "${total - unlocked}",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
-                    text = "Preostalo",
-                    style = MaterialTheme.typography.bodySmall
+                    text = "Remaining",
+                    fontSize = 14.sp,
+                    color = Color(0xFF94A3B8)
                 )
             }
         }
@@ -439,22 +496,23 @@ fun BadgeCard(
     progress: Float,
     isUnlocked: Boolean
 ) {
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .alpha(if (isUnlocked) 1f else 0.6f),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isUnlocked) {
-                when (badge.tier) {
-                    BadgeTier.BRONZE -> Color(0xFFCD7F32).copy(alpha = 0.2f)
-                    BadgeTier.SILVER -> Color(0xFFC0C0C0).copy(alpha = 0.2f)
-                    BadgeTier.GOLD -> Color(0xFFFFD700).copy(alpha = 0.2f)
-                    BadgeTier.PLATINUM -> Color(0xFFE5E4E2).copy(alpha = 0.2f)
-                }
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
-        )
+            .alpha(if (isUnlocked) 1f else 0.6f)
+            .background(
+                color = if (isUnlocked) {
+                    when (badge.tier) {
+                        BadgeTier.BRONZE -> Color(0xFFCD7F32).copy(alpha = 0.15f)
+                        BadgeTier.SILVER -> Color(0xFFC0C0C0).copy(alpha = 0.15f)
+                        BadgeTier.GOLD -> Color(0xFFFFD700).copy(alpha = 0.15f)
+                        BadgeTier.PLATINUM -> Color(0xFFE5E4E2).copy(alpha = 0.15f)
+                    }
+                } else {
+                    Color(0xFF0F172A).copy(alpha = 0.6f)
+                },
+                shape = RoundedCornerShape(12.dp)
+            )
     ) {
         Row(
             modifier = Modifier
@@ -487,13 +545,14 @@ fun BadgeCard(
             ) {
                 Text(
                     text = badge.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
                     text = badge.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontSize = 14.sp,
+                    color = Color(0xFF94A3B8)
                 )
                 
                 if (!isUnlocked && progress > 0) {
@@ -504,8 +563,8 @@ fun BadgeCard(
                     )
                     Text(
                         text = "${progress.toInt()}%",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 13.sp,
+                        color = Color(0xFF94A3B8),
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
