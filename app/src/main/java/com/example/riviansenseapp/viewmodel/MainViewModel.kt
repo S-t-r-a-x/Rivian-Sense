@@ -36,7 +36,7 @@ class MainViewModel : ViewModel() {
     private var previousStopState: Boolean = false  // Tracking za stop promenu
 
     // StateFlow za trenutni kontekst
-    private val _currentContext = MutableStateFlow(DriverContext(Mood.NEUTRAL, Location.CITY, stop = false))
+    private val _currentContext = MutableStateFlow(DriverContext(Mood.NERVOUS, Location.CITY, stop = false))
     val currentContext: StateFlow<DriverContext> = _currentContext
 
     // StateFlow za smart actions
