@@ -67,7 +67,7 @@ if __name__ == "__main__":
         data = json.load(f)
 
     # --------------------
-    # LOAD MODEL ONCE ❤️
+    # LOAD MODEL ONCE
     # --------------------
     print("🧠 Loading model...")
     model = RivianModel()
