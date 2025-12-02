@@ -17,7 +17,7 @@ FOLDERS = ["A", "B", "C", "D"]
 # -------------------------------
 # Model Definition
 # -------------------------------
-class RivianModel(nn.Module):
+class DriveModel(nn.Module):
     def __init__(self, num_moods=5, num_scenes=6):
         super().__init__()
 
@@ -37,7 +37,7 @@ class RivianModel(nn.Module):
 # -------------------------------
 # Dataset Loader
 # -------------------------------
-class RivianDataset(Dataset):
+class DriveDataset(Dataset):
     def __init__(self, mapping_file, frame_dir):
         with open(mapping_file, "r") as f:
             self.data = json.load(f)
@@ -79,7 +79,7 @@ def load_all_datasets():
             print(f"⚠ Missing mapping_hardcoded.json for {folder}, skipping")
             continue
 
-        datasets.append(RivianDataset(mapping_path, folder_path))
+        datasets.append(DriveDataset(mapping_path, folder_path))
 
     # Combine datasets
     return torch.utils.data.ConcatDataset(datasets)
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     dataset = load_all_datasets()
     loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
-    model = RivianModel()
+    model = DriveModel()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     criterion = nn.CrossEntropyLoss()
 
