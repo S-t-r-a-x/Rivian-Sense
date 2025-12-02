@@ -1,6 +1,6 @@
-# Rivian Sense
+# Drive Sense
 
-Rivian Sense is an intelligent, context-aware Android application designed to enhance driver safety and comfort. By analyzing real-time video feeds and vehicle telemetry, the system detects the driver's emotional state and the surrounding environment to provide tailored, proactive assistance.
+Drive Sense is an intelligent, context-aware Android application designed to enhance driver safety and comfort. By analyzing real-time video feeds and vehicle telemetry, the system detects the driver's emotional state and the surrounding environment to provide tailored, proactive assistance.
 
 ## Features
 

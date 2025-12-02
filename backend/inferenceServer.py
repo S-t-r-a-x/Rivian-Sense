@@ -10,7 +10,7 @@ import torch
 from torchvision import transforms
 import cv2  # for slideshow
 
-from train import RivianModel
+from train import DriveModel
 
 # ============================================================
 #                    FLASK + SOCKET.IO SETUP
@@ -29,7 +29,7 @@ socketio = SocketIO(
 )
 
 print("=" * 60)
-print("🚀 Rivian Sense - Flask-SocketIO Server + Inference")
+print("🚀 Drive Sense - Flask-SocketIO Server + Inference")
 print("=" * 60)
 
 
@@ -207,7 +207,7 @@ def inference_loop(data, frames_root, model, folder_name):
                         cv2.LINE_AA
                     )
 
-                cv2.imshow("Rivian Sense - Frames", frame_bgr)
+                cv2.imshow("Drive Sense - Frames", frame_bgr)
                 # waitKey is needed for imshow to update; 1 ms is enough
                 cv2.waitKey(1)
             else:
@@ -391,7 +391,7 @@ if __name__ == '__main__':
             print(f"❌ model.pth not found at: {model_path}")
             raise SystemExit(1)
 
-        model = RivianModel()
+        model = DriveModel()
         model.load_state_dict(torch.load(model_path, map_location="cpu"))
         model.eval()
         print("✅ Model loaded!\n")

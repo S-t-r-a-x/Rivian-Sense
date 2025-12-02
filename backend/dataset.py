@@ -5,7 +5,7 @@ from PIL import Image
 import torch
 
 
-class RivianDataset(Dataset):
+class DriveDataset(Dataset):
     def __init__(self, mapping_path, transform=None):
         self.mapping_path = mapping_path
 

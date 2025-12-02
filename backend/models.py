@@ -32,7 +32,7 @@ class MetadataEncoder(nn.Module):
         return self.model(x)
 
 
-class RivianModel(nn.Module):
+class DriveModel(nn.Module):
     def __init__(self, num_mood_classes=5, num_scene_classes=5):
         super().__init__()
         self.image_encoder = ImageEncoder()

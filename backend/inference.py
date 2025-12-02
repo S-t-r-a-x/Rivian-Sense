@@ -4,7 +4,7 @@ import torch
 import time
 from PIL import Image
 from torchvision import transforms
-from train import RivianModel
+from train import DriveModel
 
 # --------------------
 # LABELS
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     # LOAD MODEL ONCE ❤️
     # --------------------
     print("🧠 Loading model...")
-    model = RivianModel()
+    model = DriveModel()
     model.load_state_dict(torch.load(os.path.join(SCRIPT_DIR, "model.pth")))
     model.eval()
 
