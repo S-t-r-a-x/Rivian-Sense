@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Rivian Sense app"
+rootProject.name = "Drive Sense app"
 include(":app")
  

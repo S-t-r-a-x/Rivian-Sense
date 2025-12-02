@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.riviansenseapp"
+    namespace = "com.example.drivesenseapp"
     compileSdk {
         version = release(34)
     }
 
     defaultConfig {
-        applicationId = "com.example.riviansenseapp"
+        applicationId = "com.example.drivesenseapp"
         minSdk = 34
         targetSdk = 34
         versionCode = 1
